@@ -72,6 +72,11 @@ export async function subscribeChannel(
 	if (result.isError) {
 		await db.update(channels).set({ websubStatus: 'error' }).where(eq(channels.id, channel.id))
 		console.error(`[websub] subscribe failed for ${channel.ytChannelId}: ${result.error}`)
+	} else if (result.data.skipped) {
+		console.log(`[websub] subscribe skipped for ${channel.ytChannelId}: local callback`)
+	} else {
+		await db.update(channels).set({ websubStatus: 'pending' }).where(eq(channels.id, channel.id))
+		console.log(`[websub] subscribe requested for ${channel.ytChannelId}`)
 	}
 
 	return result
@@ -88,5 +93,6 @@ export async function unsubscribeChannel(
 		console.error(`[websub] unsubscribe failed for ${channel.ytChannelId}: ${result.error}`)
 		return
 	}
+	console.log(`[websub] unsubscribe requested for ${channel.ytChannelId}`)
 	await db.update(channels).set({ websubStatus: 'unsubscribed' }).where(eq(channels.id, channel.id))
 }

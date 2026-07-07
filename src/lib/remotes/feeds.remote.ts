@@ -12,6 +12,12 @@ import { ingestChannel, seedFeedItems, refreshChannelIcon } from '$lib/server/in
 import { evaluateVideo } from '$lib/server/ingest/rules'
 import { subscribeChannel, unsubscribeChannel } from '$lib/server/websub'
 
+function needsWebsubSubscription(
+	channel: Pick<typeof channels.$inferSelect, 'websubStatus' | 'websubLeaseExpiresAt'>
+) {
+	return channel.websubStatus !== 'active' || !channel.websubLeaseExpiresAt
+}
+
 function requireUser() {
 	const { locals } = getRequestEvent()
 	if (!locals.user) error(401, 'Not logged in')
@@ -131,6 +137,7 @@ export const addFeed = command(v.pipe(v.string(), v.trim(), v.minLength(1)), asy
 	const resolved = await resolveChannelId(url)
 	if (resolved.isError) error(400, resolved.error)
 
+	let subscriptionRequested = false
 	let [channel] = await db
 		.select()
 		.from(channels)
@@ -152,8 +159,9 @@ export const addFeed = command(v.pipe(v.string(), v.trim(), v.minLength(1)), asy
 
 		if (channel) {
 			await ingestChannel(db, channel.id)
-			// Hub confirmation and the avatar arrive asynchronously; don't block feed creation
-			void subscribeChannel(db, channel)
+			await subscribeChannel(db, channel)
+			subscriptionRequested = true
+			// The avatar arrives asynchronously; don't block feed creation
 			void refreshChannelIcon(db, channel)
 		} else {
 			// Lost a race with a concurrent add — fetch the winner
@@ -162,6 +170,10 @@ export const addFeed = command(v.pipe(v.string(), v.trim(), v.minLength(1)), asy
 				.from(channels)
 				.where(eq(channels.ytChannelId, resolved.data.ytChannelId))
 		}
+	}
+
+	if (!subscriptionRequested && needsWebsubSubscription(channel)) {
+		await subscribeChannel(db, channel)
 	}
 
 	const [feed] = await db

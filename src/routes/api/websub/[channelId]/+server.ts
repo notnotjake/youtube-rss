@@ -24,6 +24,9 @@ export const GET: RequestHandler = async ({ params, url }) => {
 	const challenge = url.searchParams.get('hub.challenge')
 
 	if (!challenge || topic !== feedUrl(channel.ytChannelId)) {
+		console.warn(
+			`[websub] bad verification for ${channel.ytChannelId}: mode=${mode}, topic=${topic}`
+		)
 		return new Response('bad request', { status: 400 })
 	}
 
@@ -36,6 +39,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 				websubLeaseExpiresAt: leaseSeconds ? new Date(Date.now() + leaseSeconds * 1000) : null
 			})
 			.where(eq(channels.id, channel.id))
+		console.log(`[websub] subscribe confirmed for ${channel.ytChannelId}`)
 		return new Response(challenge)
 	}
 
@@ -44,6 +48,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 			.update(channels)
 			.set({ websubStatus: 'unsubscribed', websubLeaseExpiresAt: null })
 			.where(eq(channels.id, channel.id))
+		console.log(`[websub] unsubscribe confirmed for ${channel.ytChannelId}`)
 		return new Response(challenge)
 	}
 
@@ -52,8 +57,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
 
 /**
  * Content notification. The payload is unreliable (missing descriptions,
- * sometimes stale), so it's treated purely as a trigger: verify the HMAC,
- * ack fast, and refetch the real channel feed.
+ * sometimes stale), so it's treated purely as a trigger: verify the HMAC
+ * and refetch the real channel feed before acknowledging the notification.
  */
 export const POST: RequestHandler = async ({ params, url, request }) => {
 	const channel = await findChannel(params.channelId, url.searchParams.get('t'))
@@ -65,21 +70,19 @@ export const POST: RequestHandler = async ({ params, url, request }) => {
 	if (!verifyHubSignature(rawBody, signature, channel.websubSecret)) {
 		// Per the WebSub spec, acknowledge but ignore bad signatures so the
 		// hub doesn't retry a request we'll never accept
+		console.warn(`[websub] ignored notification with invalid signature for ${channel.ytChannelId}`)
 		return new Response(null, { status: 204 })
 	}
 
-	// Ack before the ingest fetches run; polling backstops any failure here
-	ingestChannel(db, channel.id).then((result) => {
-		if (result.isError) {
-			console.error(
-				`[websub] ingest after notify failed for ${channel.ytChannelId}: ${result.error}`
-			)
-		} else if (result.data.newVideos > 0) {
-			console.log(
-				`[websub] ${channel.title}: +${result.data.newVideos} videos, ${result.data.feedItemsAdded} feed items`
-			)
-		}
-	})
+	const result = await ingestChannel(db, channel.id)
+	if (result.isError) {
+		console.error(`[websub] ingest after notify failed for ${channel.ytChannelId}: ${result.error}`)
+		return new Response(null, { status: 500 })
+	}
+
+	console.log(
+		`[websub] ${channel.ytChannelId}: +${result.data.newVideos} videos, ${result.data.feedItemsAdded} feed items`
+	)
 
 	return new Response(null, { status: 204 })
 }

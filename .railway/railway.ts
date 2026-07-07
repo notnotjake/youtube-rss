@@ -1,9 +1,24 @@
-import { defineRailway, empty, github, postgres, preserve, project, service } from 'railway/iac'
+import {
+	defineRailway,
+	empty,
+	github,
+	postgres,
+	preserve,
+	project,
+	service,
+	volume
+} from 'railway/iac'
 
 export default defineRailway((ctx) => {
 	const DEV = ctx.environment === 'dev'
 
 	const Postgres = postgres('Postgres')
+	const postgresVolume = volume('postgres-volume', {
+		alerts: { usage: { '100': {}, '80': {}, '95': {} } },
+		allowOnlineResize: true,
+		region: 'us-east4-eqdc4a',
+		sizeMB: 50000
+	})
 
 	const appEnv = {
 		NODE_ENV: 'production',
@@ -47,5 +62,5 @@ export default defineRailway((ctx) => {
 	})
 
 	if (DEV) return project('youtube-rss', { resources: [varsDev] })
-	return project('youtube-rss', { resources: [app, Postgres] })
+	return project('youtube-rss', { resources: [app, Postgres, postgresVolume] })
 })

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { resolve } from '$app/paths'
-	import { IconPlus, IconRss } from '@tabler/icons-svelte'
+	import { IconPlus, IconRss, IconCopy, IconCheck, IconDots } from '@tabler/icons-svelte'
 	import { getFeeds, addFeed } from '$remotes/feeds.remote'
 	import { site } from '$lib/site-config'
 
@@ -12,6 +12,15 @@
 	let url = $state('')
 	let adding = $state(false)
 	let errorMessage: string | null = $state(null)
+	let copiedFeedId: string | null = $state(null)
+
+	async function copyFeedUrl(feed: { id: string; feedUrl: string }) {
+		await navigator.clipboard.writeText(feed.feedUrl)
+		copiedFeedId = feed.id
+		setTimeout(() => {
+			if (copiedFeedId === feed.id) copiedFeedId = null
+		}, 1500)
+	}
 
 	async function add(event: SubmitEvent) {
 		event.preventDefault()
@@ -65,41 +74,65 @@
 	{:else}
 		<ul class="mt-8 flex flex-col gap-3">
 			{#each feeds as feed (feed.id)}
-				<li>
+				<li
+					class="relative flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-card transition-colors hover:border-neutral-300"
+				>
+					<!-- Stretched link: the whole row navigates, buttons sit above it -->
 					<a
 						href={resolve('/(app)/feeds/[id]', { id: feed.id })}
-						class="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-card transition-colors hover:border-neutral-300"
-					>
-						{#if feed.channelIcon}
-							<img
-								src={feed.channelIcon}
-								alt=""
-								loading="lazy"
-								referrerpolicy="no-referrer"
-								class="size-11 shrink-0 rounded-full object-cover"
-							/>
-						{:else}
-							<div
-								class="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-400"
-							>
-								<IconRss size={20} />
-							</div>
-						{/if}
-						<div class="min-w-0 flex-1">
-							<h2 class="truncate font-medium">{feed.title}</h2>
-							<p class="mt-0.5 text-sm text-neutral-500">
-								{feed.itemCount}
-								{feed.itemCount === 1 ? 'video' : 'videos'}
-								{#if feed.includeShorts}· Shorts on{/if}
-								{#if feed.ruleCount > 0}
-									· {feed.ruleCount}
-									{feed.ruleCount === 1 ? 'filter' : 'filters'}
-								{/if}
-							</p>
+						class="absolute inset-0 rounded-2xl"
+						aria-label="Manage {feed.title}"
+					></a>
+					{#if feed.channelIcon}
+						<img
+							src={feed.channelIcon}
+							alt=""
+							loading="lazy"
+							referrerpolicy="no-referrer"
+							class="size-11 shrink-0 rounded-full object-cover"
+						/>
+					{:else}
+						<div
+							class="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-400"
+						>
+							<IconRss size={20} />
 						</div>
-						<span class="shrink-0 text-sm text-neutral-400">Manage →</span>
-					</a>
+					{/if}
+					<div class="min-w-0 flex-1">
+						<h2 class="truncate font-medium">{feed.title}</h2>
+						<p class="mt-0.5 text-sm text-neutral-500">
+							{feed.itemCount}
+							{feed.itemCount === 1 ? 'video' : 'videos'}
+							{#if feed.includeShorts}· Shorts on{/if}
+							{#if feed.ruleCount > 0}
+								· {feed.ruleCount}
+								{feed.ruleCount === 1 ? 'filter' : 'filters'}
+							{/if}
+						</p>
+					</div>
+					<div class="relative z-10 flex shrink-0 items-center gap-1.5">
+						<button
+							onclick={() => copyFeedUrl(feed)}
+							aria-label="Copy feed URL"
+							title="Copy feed URL"
+							class="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition-all hover:bg-neutral-200 hover:text-neutral-800 active:scale-[0.94]"
+						>
+							{#if copiedFeedId === feed.id}
+								<IconCheck size={18} class="text-green-600" />
+							{:else}
+								<IconCopy size={18} />
+							{/if}
+						</button>
+						<a
+							href={resolve('/(app)/feeds/[id]', { id: feed.id })}
+							aria-label="Manage {feed.title}"
+							title="Manage feed"
+							class="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition-all hover:bg-neutral-200 hover:text-neutral-800 active:scale-[0.94]"
+						>
+							<IconDots size={18} />
+						</a>
+					</div>
 				</li>
-		{/each}
-	</ul>
+			{/each}
+		</ul>
 {/if}

@@ -1,4 +1,4 @@
-# YouTube RSS
+# Shortless
 
 Clean RSS feeds for YouTube channels — no Shorts, your filters.
 

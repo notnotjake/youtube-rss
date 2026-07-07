@@ -21,7 +21,7 @@ const AuthCode = ({ code, maxAgeMins = 10 }: Options) => {
 					<Container className="w-full max-w-none bg-white pt-[50px] pb-[40px] dark:bg-neutral-900">
 						<Section className="mx-auto max-w-[430px] px-1">
 							<Heading className="m-0 text-[22px] font-semibold text-black dark:text-white">
-								Log in to YouTube RSS
+								Log in to Shortless
 							</Heading>
 							<Text className="mt-2 mb-0 text-[15px] text-neutral-600 dark:text-neutral-300">
 								Use this code to securely log in

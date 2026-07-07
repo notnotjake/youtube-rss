@@ -71,7 +71,7 @@ export function renderRssFeed(info: RssFeedInfo, items: RssFeedItem[]): string {
 <channel>
  <title>${escapeXml(info.title)}</title>
  <link>${escapeXml(info.channelUrl)}</link>
- <description>${escapeXml(`${info.title} — via YouTube RSS`)}</description>
+ <description>${escapeXml(`${info.title} — via Shortless`)}</description>
  <atom:link href="${escapeXml(info.feedUrl)}" rel="self" type="application/rss+xml"/>${
 		info.iconUrl
 			? `

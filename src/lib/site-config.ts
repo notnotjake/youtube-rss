@@ -1,4 +1,4 @@
 export const site = {
-	name: 'YouTube RSS',
+	name: 'Shortless',
 	description: 'Clean RSS feeds for YouTube channels — no Shorts, your filters'
 } as const

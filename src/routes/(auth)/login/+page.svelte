@@ -169,18 +169,20 @@
 					/>
 
 					<!-- Gradient State Indicator -->
+					<!-- Alpha lives in the gradient colors and only width animates —
+					     opacity transitions here cause compositing glitches on the icon -->
 					<!-- Button Available -->
 					<div
 						class={createClass(
-							'pointer-events-none absolute top-0 right-0 z-0 h-full w-18 bg-linear-to-l from-[#4496FF] to-[rgba(45,169,255,0.00)]',
-							startButtonAvailable ? 'w-18 opacity-20' : 'w-0 opacity-0'
+							'pointer-events-none absolute top-0 right-0 z-0 h-full bg-linear-to-l from-[#4496FF]/20 to-[rgba(45,169,255,0.00)]',
+							startButtonAvailable ? 'w-18' : 'w-0'
 						)}
 					></div>
 					<!-- Errors/Issues Present -->
 					<div
 						class={createClass(
-							'pointer-events-none absolute top-0 right-0 z-0 h-full w-18 bg-linear-to-l from-rose-400/60 to-rose-300/0',
-							showError ? 'w-18 opacity-25' : 'w-0 opacity-0'
+							'pointer-events-none absolute top-0 right-0 z-0 h-full bg-linear-to-l from-rose-400/15 to-rose-300/0',
+							showError ? 'w-18' : 'w-0'
 						)}
 					></div>
 

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UCtest000000000000000000"/>
+ <id>yt:channel:test000000000000000000</id>
+ <yt:channelId>test000000000000000000</yt:channelId>
+ <title>Linus Tech Tips</title>
+ <link rel="alternate" href="https://www.youtube.com/channel/UCtest000000000000000000"/>
+ <author>
+  <name>Linus Tech Tips</name>
+  <uri>https://www.youtube.com/channel/UCtest000000000000000000</uri>
+ </author>
+ <published>2008-11-25T00:46:52+00:00</published>
+ <entry>
+  <id>yt:video:aaaaaaaaaa1</id>
+  <yt:videoId>aaaaaaaaaa1</yt:videoId>
+  <yt:channelId>UCtest000000000000000000</yt:channelId>
+  <title>Swimming Against Man-Made Waves</title>
+  <link rel="alternate" href="https://www.youtube.com/shorts/aaaaaaaaaa1"/>
+  <author>
+   <name>Linus Tech Tips</name>
+   <uri>https://www.youtube.com/channel/UCtest000000000000000000</uri>
+  </author>
+  <published>2026-07-06T17:45:47+00:00</published>
+  <updated>2026-07-07T08:07:28+00:00</updated>
+  <media:group>
+   <media:title>Swimming Against Man-Made Waves</media:title>
+   <media:content url="https://www.youtube.com/v/aaaaaaaaaa1?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/aaaaaaaaaa1/hqdefault.jpg" width="480" height="360"/>
+   <media:description>How long can we last against a man-made wave?</media:description>
+   <media:community>
+    <media:starRating count="2738" average="5.00" min="1" max="5"/>
+    <media:statistics views="126259"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:bbbbbbbbbb2</id>
+  <yt:videoId>bbbbbbbbbb2</yt:videoId>
+  <yt:channelId>UCtest000000000000000000</yt:channelId>
+  <title>I Hate These...</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=bbbbbbbbbb2"/>
+  <author>
+   <name>Linus Tech Tips</name>
+   <uri>https://www.youtube.com/channel/UCtest000000000000000000</uri>
+  </author>
+  <published>2026-07-06T16:53:00+00:00</published>
+  <updated>2026-07-07T06:08:52+00:00</updated>
+  <media:group>
+   <media:title>I Hate These...</media:title>
+   <media:content url="https://www.youtube.com/v/bbbbbbbbbb2?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/bbbbbbbbbb2/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Get a 15% discount on Saily eSIM data plans! Download the Saily app and use code LTT at checkout.
+
+Linus Media Group has relied on SD cards for over a decade &amp; more description text here.</media:description>
+   <media:community>
+    <media:starRating count="9151" average="5.00" min="1" max="5"/>
+    <media:statistics views="352106"/>
+   </media:community>
+  </media:group>
+ </entry>
+</feed>

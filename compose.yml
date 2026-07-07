@@ -1,0 +1,17 @@
+name: ${RAILWAY_PROJECT_NAME:-youtube-rss}
+
+services:
+  db:
+    image: postgres:18
+    restart: always
+    ports:
+      - 5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: local
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:

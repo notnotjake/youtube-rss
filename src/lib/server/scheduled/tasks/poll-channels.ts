@@ -4,7 +4,7 @@ import { isNull, lt, or } from 'drizzle-orm'
 import { db } from '$lib/server/db'
 import { channels } from '$lib/server/db/schema'
 import { ingestChannel, refreshChannelIcon } from '$lib/server/ingest'
-import { EVERY_1_HOUR, POLL_STALE_AFTER_MS } from '../schedules'
+import { EVERY_15_MINUTES, POLL_STALE_AFTER_MS } from '../schedules'
 
 async function backfillMissingIcons() {
 	const missing = await db
@@ -42,7 +42,7 @@ async function pollStaleChannels() {
 
 export function schedulePollChannels() {
 	const schedule = new Cron(
-		EVERY_1_HOUR,
+		EVERY_15_MINUTES,
 		async () => {
 			await pollStaleChannels()
 			await backfillMissingIcons()

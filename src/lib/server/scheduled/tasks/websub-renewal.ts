@@ -10,8 +10,9 @@ async function renewLeases({ includeActive = false } = {}) {
 	const renewBefore = new Date(Date.now() + LEASE_RENEWAL_WINDOW_MS)
 
 	// Everything still wanted (not unsubscribed) with a missing or
-	// soon-expiring lease — includes pending/error rows so failed
-	// subscriptions retry here too
+	// soon-expiring lease. Pending/error rows are retried regardless of
+	// lease expiry: a resubscribe whose verification never arrived keeps
+	// its old far-future expiry, which would otherwise mask it for days.
 	const expiring = await db
 		.select()
 		.from(channels)
@@ -21,6 +22,7 @@ async function renewLeases({ includeActive = false } = {}) {
 				: and(
 						ne(channels.websubStatus, 'unsubscribed'),
 						or(
+							ne(channels.websubStatus, 'active'),
 							isNull(channels.websubLeaseExpiresAt),
 							lt(channels.websubLeaseExpiresAt, renewBefore)
 						)

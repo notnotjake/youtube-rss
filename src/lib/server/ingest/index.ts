@@ -3,6 +3,7 @@ import type { FetchLike } from '../fetch'
 import type { Db } from '../db/client'
 import { channels, feeds, feedRules, feedItems, videos } from '../db/schema'
 import { fetchChannelFeed, type FeedEntry } from '../youtube/feed-parser'
+import { fetchChannelIcon } from '../youtube/channel-icon'
 import { isShort } from '../youtube/shorts'
 import { evaluateVideo, type FeedRule } from './rules'
 import { err, ok, type StructuredResult } from '$utils/structured-result'
@@ -133,6 +134,18 @@ export async function ingestChannel(
 	}
 
 	return ok(counts)
+}
+
+/** Fetches and stores the channel's avatar. Safe to fire-and-forget. */
+export async function refreshChannelIcon(
+	db: Db,
+	channel: { id: string; ytChannelId: string },
+	fetchFn: FetchLike = fetch
+): Promise<void> {
+	const icon = await fetchChannelIcon(channel.ytChannelId, fetchFn)
+	if (icon) {
+		await db.update(channels).set({ iconUrl: icon }).where(eq(channels.id, channel.id))
+	}
 }
 
 /**

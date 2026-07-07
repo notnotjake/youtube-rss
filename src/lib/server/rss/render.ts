@@ -4,6 +4,8 @@ export type RssFeedInfo = {
 	channelUrl: string
 	/** Our public URL for this feed (atom:link rel=self) */
 	feedUrl: string
+	/** Channel avatar, rendered as the RSS channel image */
+	iconUrl?: string | null
 }
 
 export type RssFeedItem = {
@@ -70,7 +72,16 @@ export function renderRssFeed(info: RssFeedInfo, items: RssFeedItem[]): string {
  <title>${escapeXml(info.title)}</title>
  <link>${escapeXml(info.channelUrl)}</link>
  <description>${escapeXml(`${info.title} — via YouTube RSS`)}</description>
- <atom:link href="${escapeXml(info.feedUrl)}" rel="self" type="application/rss+xml"/>
+ <atom:link href="${escapeXml(info.feedUrl)}" rel="self" type="application/rss+xml"/>${
+		info.iconUrl
+			? `
+ <image>
+  <url>${escapeXml(info.iconUrl)}</url>
+  <title>${escapeXml(info.title)}</title>
+  <link>${escapeXml(info.channelUrl)}</link>
+ </image>`
+			: ''
+ }
  <lastBuildDate>${lastBuildDate.toUTCString()}</lastBuildDate>
 ${itemsXml}
 </channel>

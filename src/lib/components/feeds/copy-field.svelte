@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { IconCopy, IconCheck } from '@tabler/icons-svelte'
+
 	type Props = { value: string; label?: string }
 	let { value, label = 'Feed URL' }: Props = $props()
 
@@ -13,18 +15,24 @@
 
 <div class="flex flex-col gap-1.5">
 	<span class="text-sm font-medium text-neutral-600">{label}</span>
-	<div class="flex items-center gap-2">
+	<div class="relative">
 		<input
 			readonly
 			{value}
 			onfocus={(e) => e.currentTarget.select()}
-			class="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3.5 py-2 font-mono text-sm text-neutral-700 outline-none focus:border-neutral-400"
+			class="w-full rounded-full border border-neutral-200 bg-white py-2.5 pr-28 pl-5 font-mono text-sm text-neutral-700 outline-none focus:border-neutral-400"
 		/>
 		<button
 			onclick={copy}
-			class="shrink-0 rounded-full bg-neutral-200 px-4 py-2 text-sm font-medium text-neutral-800 transition-colors hover:bg-neutral-300"
+			class="absolute top-1/2 right-1.5 inline-flex -translate-y-1/2 items-center gap-1.5 rounded-full bg-neutral-200 py-1.5 pr-4 pl-3 text-sm font-medium text-neutral-800 transition-all hover:bg-neutral-300 active:scale-[0.97]"
 		>
-			{copied ? 'Copied' : 'Copy'}
+			{#if copied}
+				<IconCheck size={16} class="text-green-600" />
+				Copied
+			{:else}
+				<IconCopy size={16} />
+				Copy
+			{/if}
 		</button>
 	</div>
 </div>

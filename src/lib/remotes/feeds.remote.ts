@@ -8,7 +8,7 @@ import { db } from '$lib/server/db'
 import { channels, feeds, feedRules, feedItems, videos } from '$lib/server/db/schema'
 import { resolveChannelId } from '$lib/server/youtube/resolve'
 import { fetchChannelFeed } from '$lib/server/youtube/feed-parser'
-import { ingestChannel, seedFeedItems } from '$lib/server/ingest'
+import { ingestChannel, seedFeedItems, refreshChannelIcon } from '$lib/server/ingest'
 import { evaluateVideo } from '$lib/server/ingest/rules'
 import { subscribeChannel, unsubscribeChannel } from '$lib/server/websub'
 
@@ -19,7 +19,7 @@ function requireUser() {
 }
 
 function publicFeedUrl(token: string): string {
-	return `${env.SITE_URL}/f/${token}.xml`
+	return `${env.SITE_URL}/rss/${token}.xml`
 }
 
 const ruleSchema = v.object({
@@ -55,7 +55,8 @@ export const getFeeds = query(async () => {
 			token: feeds.token,
 			createdAt: feeds.createdAt,
 			channelTitle: channels.title,
-			channelUrl: channels.channelUrl
+			channelUrl: channels.channelUrl,
+			channelIcon: channels.iconUrl
 		})
 		.from(feeds)
 		.innerJoin(channels, eq(feeds.channelId, channels.id))
@@ -84,6 +85,7 @@ export const getFeeds = query(async () => {
 		title: row.title ?? row.channelTitle,
 		channelTitle: row.channelTitle,
 		channelUrl: row.channelUrl,
+		channelIcon: row.channelIcon,
 		includeShorts: row.includeShorts,
 		itemCount: itemsByFeed.get(row.id) ?? 0,
 		ruleCount: rulesByFeed.get(row.id) ?? 0,
@@ -116,6 +118,7 @@ export const getFeed = query(v.string(), async (feedId) => {
 		channel: {
 			title: channel.title,
 			url: channel.channelUrl,
+			icon: channel.iconUrl,
 			websubStatus: channel.websubStatus
 		}
 	}
@@ -149,8 +152,9 @@ export const addFeed = command(v.pipe(v.string(), v.trim(), v.minLength(1)), asy
 
 		if (channel) {
 			await ingestChannel(db, channel.id)
-			// Hub confirmation arrives asynchronously; don't block feed creation
+			// Hub confirmation and the avatar arrive asynchronously; don't block feed creation
 			void subscribeChannel(db, channel)
+			void refreshChannelIcon(db, channel)
 		} else {
 			// Lost a race with a concurrent add — fetch the winner
 			;[channel] = await db
@@ -165,6 +169,9 @@ export const addFeed = command(v.pipe(v.string(), v.trim(), v.minLength(1)), asy
 		.values({ userId: user.id, channelId: channel.id })
 		.returning()
 	await seedFeedItems(db, feed.id)
+
+	// Single-flight: ship the updated list back with this response
+	void getFeeds().refresh()
 
 	return { feedId: feed.id }
 })
@@ -182,6 +189,10 @@ export const updateFeed = command(settingsSchema, async ({ feedId, includeShorts
 	if (rules.length > 0) {
 		await db.insert(feedRules).values(rules.map((rule) => ({ ...rule, feedId: feed.id })))
 	}
+
+	// Single-flight: updated detail + list ship back with this response
+	void getFeed(feedId).refresh()
+	void getFeeds().refresh()
 
 	return { ok: true }
 })
@@ -238,6 +249,9 @@ export const deleteFeed = command(v.string(), async (feedId) => {
 			await db.delete(channels).where(eq(channels.id, channel.id))
 		}
 	}
+
+	// Single-flight: the list the user returns to is already refreshed
+	void getFeeds().refresh()
 
 	return { ok: true }
 })

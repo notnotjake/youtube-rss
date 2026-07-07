@@ -13,6 +13,8 @@ export const channels = pgTable('channels', {
 	ytChannelId: text('yt_channel_id').notNull().unique(),
 	title: text('title').notNull(),
 	channelUrl: text('channel_url').notNull(),
+	// Channel avatar (og:image from the channel page), fetched after creation
+	iconUrl: text('icon_url'),
 	// HMAC secret for WebSub notification signatures (hub.secret)
 	websubSecret: text('websub_secret')
 		.notNull()

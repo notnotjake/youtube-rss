@@ -64,4 +64,13 @@ describe('renderRssFeed', () => {
 		expect(xml).toContain('<channel>')
 		expect(xml).not.toContain('<item>')
 	})
+
+	test('renders the channel avatar as an RSS image when present', () => {
+		const withIcon = { ...info, iconUrl: 'https://yt3.googleusercontent.com/avatar=s900' }
+		const xml = renderRssFeed(withIcon, [item()])
+		expect(xml).toContain('<image>')
+		expect(xml).toContain('<url>https://yt3.googleusercontent.com/avatar=s900</url>')
+
+		expect(renderRssFeed(info, [item()])).not.toContain('<image>')
+	})
 })

@@ -24,7 +24,7 @@
 		class="h-[26px] w-[44px] shrink-0 rounded-full bg-neutral-300 p-[3px] transition-colors duration-150 ease-out-quart data-[state=checked]:bg-neutral-800"
 	>
 		<Switch.Thumb
-			class="size-[20px] rounded-full bg-white shadow-sm transition-transform duration-150 ease-out-quart data-[state=checked]:translate-x-[18px]"
+			class="block size-[20px] rounded-full bg-white shadow-sm transition-transform duration-150 ease-out-quart data-[state=checked]:translate-x-[18px]"
 		/>
 	</Switch.Root>
 </div>

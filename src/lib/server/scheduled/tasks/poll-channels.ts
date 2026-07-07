@@ -3,8 +3,19 @@ import { isNull, lt, or } from 'drizzle-orm'
 
 import { db } from '$lib/server/db'
 import { channels } from '$lib/server/db/schema'
-import { ingestChannel } from '$lib/server/ingest'
+import { ingestChannel, refreshChannelIcon } from '$lib/server/ingest'
 import { EVERY_1_HOUR, POLL_STALE_AFTER_MS } from '../schedules'
+
+async function backfillMissingIcons() {
+	const missing = await db
+		.select({ id: channels.id, ytChannelId: channels.ytChannelId })
+		.from(channels)
+		.where(isNull(channels.iconUrl))
+
+	for (const channel of missing) {
+		await refreshChannelIcon(db, channel)
+	}
+}
 
 async function pollStaleChannels() {
 	const staleBefore = new Date(Date.now() - POLL_STALE_AFTER_MS)
@@ -30,6 +41,13 @@ async function pollStaleChannels() {
 }
 
 export function schedulePollChannels() {
-	const schedule = new Cron(EVERY_1_HOUR, pollStaleChannels, { timezone: 'UTC' })
+	const schedule = new Cron(
+		EVERY_1_HOUR,
+		async () => {
+			await pollStaleChannels()
+			await backfillMissingIcons()
+		},
+		{ timezone: 'UTC' }
+	)
 	return schedule
 }

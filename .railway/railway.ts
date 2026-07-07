@@ -20,9 +20,11 @@ export default defineRailway((ctx) => {
 		sizeMB: 50000
 	})
 
+	const APP_DOMAIN = 'shortlessfeeds.com'
+
 	const appEnv = {
 		NODE_ENV: 'production',
-		SITE_URL: 'https://${{RAILWAY_PUBLIC_DOMAIN}}',
+		SITE_URL: `https://${APP_DOMAIN}`,
 		ADDRESS_HEADER: 'x-forwarded-for',
 		XFF_DEPTH: '1',
 
@@ -49,6 +51,7 @@ export default defineRailway((ctx) => {
 
 	const app = service('app', {
 		source: github('notnotjake/youtube-rss', { branch: 'main' }),
+		domains: [APP_DOMAIN],
 		build: { builder: 'RAILPACK' },
 		start: 'bun run start',
 		preDeploy: 'bun run db:migrate',

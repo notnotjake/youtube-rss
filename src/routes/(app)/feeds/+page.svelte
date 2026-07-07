@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { resolve } from '$app/paths'
+	import { IconPlus, IconRss } from '@tabler/icons-svelte'
 	import { getFeeds, addFeed } from '$remotes/feeds.remote'
-	import Button from '$ui/input/button.svelte'
 	import { site } from '$lib/site-config'
+
+	// No boundary/pending around this — navigation waits for the data instead
+	// of flashing a loading state (the +page.ts load warms it during nav)
+	const feeds = $derived(await getFeeds())
 
 	let url = $state('')
 	let adding = $state(false)
@@ -34,24 +38,27 @@
 
 <h1 class="text-2xl font-semibold tracking-tight-md">Your feeds</h1>
 
-<form onsubmit={add} class="mt-6 flex gap-2">
+<form onsubmit={add} class="relative mt-6">
 	<input
 		type="text"
 		placeholder="Paste a YouTube link — channel, @handle, or any video"
 		bind:value={url}
-		class="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 outline-none focus:border-neutral-500"
+		class="w-full rounded-full border border-neutral-300 bg-white py-3 pr-26 pl-5 outline-none focus:border-neutral-500"
 	/>
-	<Button type="submit" style="primary" disabled={adding || !url.trim()}>
-		{adding ? 'Adding…' : 'Add feed'}
-	</Button>
+	<button
+		type="submit"
+		disabled={adding || !url.trim()}
+		class="absolute top-1/2 right-1.5 inline-flex -translate-y-1/2 items-center gap-1 rounded-full bg-neutral-800 py-2 pr-4 pl-3 font-medium text-white transition-all hover:bg-neutral-900 active:scale-[0.97] disabled:opacity-50"
+	>
+		<IconPlus size={18} stroke={2.5} />
+		{adding ? 'Adding…' : 'Add'}
+	</button>
 </form>
 {#if errorMessage}
 	<p class="mt-3 text-sm text-rose-600">{errorMessage}</p>
 {/if}
 
-<svelte:boundary>
-	{@const feeds = await getFeeds()}
-	{#if feeds.length === 0}
+{#if feeds.length === 0}
 		<p class="mt-12 text-center text-neutral-500">
 			No feeds yet — paste a YouTube link above to create your first one.
 		</p>
@@ -61,9 +68,24 @@
 				<li>
 					<a
 						href={resolve('/(app)/feeds/[id]', { id: feed.id })}
-						class="flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-card transition-colors hover:border-neutral-300"
+						class="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-card transition-colors hover:border-neutral-300"
 					>
-						<div class="min-w-0">
+						{#if feed.channelIcon}
+							<img
+								src={feed.channelIcon}
+								alt=""
+								loading="lazy"
+								referrerpolicy="no-referrer"
+								class="size-11 shrink-0 rounded-full object-cover"
+							/>
+						{:else}
+							<div
+								class="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-400"
+							>
+								<IconRss size={20} />
+							</div>
+						{/if}
+						<div class="min-w-0 flex-1">
 							<h2 class="truncate font-medium">{feed.title}</h2>
 							<p class="mt-0.5 text-sm text-neutral-500">
 								{feed.itemCount}
@@ -78,11 +100,6 @@
 						<span class="shrink-0 text-sm text-neutral-400">Manage →</span>
 					</a>
 				</li>
-			{/each}
-		</ul>
-	{/if}
-
-	{#snippet pending()}
-		<p class="mt-12 text-center text-neutral-400">Loading feeds…</p>
-	{/snippet}
-</svelte:boundary>
+		{/each}
+	</ul>
+{/if}

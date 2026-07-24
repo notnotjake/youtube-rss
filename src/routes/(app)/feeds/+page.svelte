@@ -4,6 +4,8 @@
 	import { IconPlus, IconRss, IconCopy, IconCheck, IconDots } from '@tabler/icons-svelte'
 	import { getFeeds, addFeed } from '$remotes/feeds.remote'
 	import { site } from '$lib/site-config'
+	import { createClass } from '@opensky/style'
+	import { Suspense } from '$ui/feedback'
 
 	// No boundary/pending around this — navigation waits for the data instead
 	// of flashing a loading state (the +page.ts load warms it during nav)
@@ -45,33 +47,45 @@
 	<title>Your feeds — {site.name}</title>
 </svelte:head>
 
-<h1 class="text-2xl font-semibold tracking-tight-md">Your feeds</h1>
+<h1 class="text-2xl font-semibold tracking-tight-md">Your Feeds</h1>
 
-<form onsubmit={add} class="relative mt-6">
+{#if feeds.length === 0}
+	<div class="w-full flex items-center flex-col">
+		<div class="min-h-18 h-[20dvh] w-full "></div>
+	<p class="text-[1.2rem] font-medium tracking-tight">Add your first feed</p>
+	<p class="text-neutral-700 tracking-tight-md">Paste a YouTube link to get started</p>
+	</div>
+{/if}
+
+<form onsubmit={add} class="relative mt-6 flex rounded-full border border-neutral-200 bg-white focus-within:border-neutral-300">
 	<input
 		type="text"
-		placeholder="Paste a YouTube link — channel, @handle, or any video"
+		placeholder="Paste a YouTube link — channel, @handle, or video"
 		bind:value={url}
-		class="w-full rounded-full border border-neutral-300 bg-white py-3 pr-26 pl-5 outline-none focus:border-neutral-500"
+		class="w-full py-3 pl-5 pr-3 outline-none"
 	/>
+	<div class="pr-1.5 py-1.5">
 	<button
 		type="submit"
 		disabled={adding || !url.trim()}
-		class="absolute top-1/2 right-1.5 inline-flex -translate-y-1/2 items-center gap-1 rounded-full bg-neutral-800 py-2 pr-4 pl-3 font-medium text-white transition-all hover:bg-neutral-900 active:scale-[0.97] disabled:opacity-50"
+		class={createClass('flex items-center gap-1 rounded-full  py-2 pr-4 pl-3 font-medium text-white transition-all  active:scale-[0.97] disabled:text-neutral-100', adding ? 'bg-sky-100' : 'bg-sky-400 hover:bg-sky-500 disabled:bg-neutral-400')}
 	>
-		<IconPlus size={18} stroke={2.5} />
-		{adding ? 'Adding…' : 'Add'}
+		{#if adding}
+			<Suspense.Spinner />
+		{:else}
+		<IconPlus size={18} stroke={2.5} class={createClass('transition-transform', !url.trim() && '-rotate-90')} />
+		<span>Add</span>
+		{/if}
 	</button>
+	</div>
 </form>
+
+
 {#if errorMessage}
 	<p class="mt-3 text-sm text-rose-600">{errorMessage}</p>
 {/if}
 
-{#if feeds.length === 0}
-		<p class="mt-12 text-center text-neutral-500">
-			No feeds yet — paste a YouTube link above to create your first one.
-		</p>
-	{:else}
+{#if feeds.length !== 0}
 		<ul class="mt-8 flex flex-col gap-3">
 			{#each feeds as feed (feed.id)}
 				<li

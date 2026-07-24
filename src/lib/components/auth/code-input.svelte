@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte'
 	import { sendLoginCode, verifyLoginCode } from '$remotes/auth.remote'
-	import { createEnhancedForm } from '@opensky/remotes'
+	import { enhancedForm } from '@opensky/remotes'
 
 	import { delay } from '$utils/timing'
 	import { createClass } from '@opensky/style'
@@ -21,7 +21,7 @@
 
 	// Send Code Form
 	//
-	const sendCodeForm = createEnhancedForm(sendLoginCode, {
+	const sendCodeForm = enhancedForm(sendLoginCode, {
 		delayMs: 50,
 		timeoutMs: 5000
 	})
@@ -39,7 +39,7 @@
 
 	// Login with Code
 	//
-	const verifyLoginCodeForm = createEnhancedForm(verifyLoginCode, {
+	const verifyLoginCodeForm = enhancedForm(verifyLoginCode, {
 		delayMs: 150,
 		timeoutMs: 5000
 	})
@@ -77,6 +77,7 @@
 		bind:this={verifyLoginCodeFormElement}
 		class="hidden"
 		aria-hidden="true"
+		{...verifyLoginCodeForm.handlers}
 		{...verifyLoginCode.enhance(async (opts) =>
 			verifyLoginCodeForm.enhance(opts, {
 				onReturn: async ({ result }) => {
@@ -222,6 +223,7 @@
 	bind:this={sendCodeFormElement}
 	class="hidden"
 	aria-hidden="true"
+	{...sendCodeForm.handlers}
 	{...sendLoginCode.enhance((opts) =>
 		sendCodeForm.enhance(opts, {
 			onReturn: async () => {

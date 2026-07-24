@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte'
 	import * as v from 'valibot'
 	import { startLogin } from '$remotes/auth.remote'
-	import { createValidation, createEnhancedForm } from '@opensky/remotes'
+	import { enhancedForm } from '@opensky/remotes'
 
 	import { createClass } from '@opensky/style'
 	import { createShake } from '$ui/adapt/shake-behavior'
@@ -20,11 +20,8 @@
 	const startLoginSchema = v.object({
 		identifier: v.pipe(v.string(), v.email('Invalid email'))
 	})
-	// Start login validator
-	const startLoginValid = createValidation(startLogin)
 	// Start login form helper
-	const startLoginForm = createEnhancedForm(startLogin, {
-		validation: startLoginValid,
+	const startLoginForm = enhancedForm(startLogin, {
 		delayMs: 100,
 		timeoutMs: 9000
 	})
@@ -40,17 +37,17 @@
 	let showError = $derived(
 		!startLoginForm.result &&
 			(startLoginForm.error ||
-				(startLoginValid.fields.identifier.issues &&
+				(startLoginForm.fields.identifier.issues &&
 					(startLogin.fields.identifier.value()?.length ?? 0) > 0))
 	)
 
 	let serverErrorMessage = $state<string | null>(null)
 	let errorMessages = $derived.by(() => {
 		if (!showError) return []
-		if (startLoginForm.error && !startLoginValid.fields.identifier.issues) {
+		if (startLoginForm.error && !startLoginForm.fields.identifier.issues) {
 			return [serverErrorMessage || 'Something went wrong, try again']
 		}
-		return startLoginValid.fields.identifier.issues ?? []
+		return startLoginForm.fields.identifier.issues ?? []
 	})
 
 	$effect(() => {
@@ -59,7 +56,7 @@
 
 	let startButtonAvailable = $derived(
 		!startLoginForm.result &&
-			!startLoginValid.fields.identifier.issues &&
+			!startLoginForm.fields.identifier.issues &&
 			startLogin.fields.value()?.identifier &&
 			(startLogin.fields.value()?.identifier?.length ?? 0) >= 5
 	)
@@ -140,6 +137,7 @@
 			{#if !startLoginForm.result}
 				<form
 					class="flex h-full w-full items-center"
+					{...startLoginForm.handlers}
 					{...startLogin.preflight(startLoginSchema).enhance(async (opts) =>
 						startLoginForm.enhance(opts, {
 							onSubmit: () => {
@@ -160,7 +158,7 @@
 					<!-- Identifier input -->
 					<input
 						{...startLogin.fields.identifier.as('email')}
-						{...startLoginValid.fields.identifier.handlers}
+						{...startLoginForm.fields.identifier.validate}
 						bind:this={identifierInput}
 						autocomplete="username"
 						placeholder="Continue with email"
@@ -198,7 +196,7 @@
 									class={createClass(
 										'pointer-events-none transition-colors duration-300 group-disabled:text-neutral-500',
 										startButtonAvailable ? 'text-blue-vibrant' : 'text-neutral-400',
-										startLoginValid.fields.identifier.issues && 'text-neutral-400'
+										startLoginForm.fields.identifier.issues && 'text-neutral-400'
 									)}
 								/>
 							</button>

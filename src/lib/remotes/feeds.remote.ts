@@ -5,6 +5,7 @@ import * as v from 'valibot'
 
 import { env } from '$env/dynamic/private'
 import { db } from '$lib/server/db'
+import { listMaterializedFeedItems } from '$lib/server/feed-items'
 import { channels, feeds, feedRules, feedItems, videos } from '$lib/server/db/schema'
 import { resolveChannelId } from '$lib/server/youtube/resolve'
 import { fetchChannelFeed } from '$lib/server/youtube/feed-parser'
@@ -104,29 +105,9 @@ export const getFeeds = query(async () => {
  * reads feedItems (rather than raw channel videos), per-feed Shorts and keyword
  * settings have already been applied by the ingest pipeline.
  */
-export const getMaterializedFeed = query(async () => {
+export const getMaterializedFeed = query(v.nullable(v.string()), async (feedId) => {
 	const user = requireUser()
-
-	return db
-		.select({
-			id: feedItems.id,
-			feedId: feeds.id,
-			channelTitle: channels.title,
-			channelIcon: channels.iconUrl,
-			ytVideoId: videos.ytVideoId,
-			title: videos.title,
-			thumbnailUrl: videos.thumbnailUrl,
-			videoUrl: videos.videoUrl,
-			isShort: videos.isShort,
-			publishedAt: videos.publishedAt
-		})
-		.from(feedItems)
-		.innerJoin(feeds, eq(feedItems.feedId, feeds.id))
-		.innerJoin(videos, eq(feedItems.videoId, videos.id))
-		.innerJoin(channels, eq(feeds.channelId, channels.id))
-		.where(eq(feeds.userId, user.id))
-		.orderBy(desc(videos.publishedAt), desc(feedItems.addedAt))
-		.limit(120)
+	return listMaterializedFeedItems(db, user.id, feedId)
 })
 
 /** Full detail for the feed settings screen */
@@ -214,7 +195,7 @@ export const addFeed = command(v.pipe(v.string(), v.trim(), v.minLength(1)), asy
 
 	// Single-flight: ship the updated list back with this response
 	void getFeeds().refresh()
-	void getMaterializedFeed().refresh()
+	void getMaterializedFeed(null).refresh()
 
 	return { feedId: feed.id }
 })
@@ -295,7 +276,7 @@ export const deleteFeed = command(v.string(), async (feedId) => {
 
 	// Single-flight: the list the user returns to is already refreshed
 	void getFeeds().refresh()
-	void getMaterializedFeed().refresh()
+	void getMaterializedFeed(null).refresh()
 
 	return { ok: true }
 })

@@ -5,5 +5,5 @@ import type { PageLoad } from './$types'
 // client navigations resolve before the page swaps in — no loading flash.
 // The template's queries dedupe against these instances.
 export const load: PageLoad = async () => {
-	await Promise.all([getFeeds(), getMaterializedFeed()])
+	await Promise.all([getFeeds(), getMaterializedFeed(null)])
 }

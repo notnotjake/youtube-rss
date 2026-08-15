@@ -15,27 +15,18 @@
 	import AccountControls from '$ui/auth/account-controls.svelte'
 	import { site } from '$lib/site-config'
 
-	const [feeds, materializedItems] = await Promise.all([getFeeds(), getMaterializedFeed()])
+	const feeds = $derived(await getFeeds())
 
 	let url = $state('')
 	let adding = $state(false)
 	let errorMessage: string | null = $state(null)
 	let copiedFeedId: string | null = $state(null)
 	let selectedFeedId = $state('all')
+	const materializedItems = $derived(
+		await getMaterializedFeed(selectedFeedId === 'all' ? null : selectedFeedId)
+	)
 
-	const visibleFeedItems = $derived.by(() => {
-		if (selectedFeedId !== 'all') {
-			return materializedItems.filter((item) => item.feedId === selectedFeedId)
-		}
-
-		// A user can create more than one filtered feed for the same channel.
-		// Keep that useful distinction in the filter, but avoid duplicate videos
-		// in the combined view.
-		return materializedItems.filter(
-			(item, index, items) =>
-				items.findIndex((candidate) => candidate.ytVideoId === item.ytVideoId) === index
-		)
-	})
+	const visibleFeedItems = $derived(materializedItems)
 
 	function formatPublishedAt(date: Date) {
 		return date.toLocaleDateString('en-US', {
@@ -109,7 +100,7 @@
 				<button
 					type="submit"
 					disabled={adding || !url.trim()}
-					class="primary-action absolute inset-y-1 right-1 inline-flex items-center gap-1.5 rounded-full bg-neutral-800 pr-4 pl-3.5 font-medium text-white outline-none transition-[background-color,transform] active:scale-[0.97] disabled:pointer-events-none disabled:bg-neutral-300 disabled:text-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2"
+					class="primary-action absolute inset-y-0.5 right-0.5 inline-flex items-center gap-1.5 rounded-full bg-neutral-800 pr-4 pl-3.5 font-medium text-white outline-none transition-[background-color,transform] active:scale-[0.97] disabled:pointer-events-none disabled:bg-neutral-300 disabled:text-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none"
 				>
 					<IconPlus size={18} stroke={2.5} />
 					{adding ? 'Adding…' : 'Add'}
@@ -221,7 +212,7 @@
 						<select
 							id="feed-filter"
 							bind:value={selectedFeedId}
-							class="min-h-11 max-w-64 cursor-pointer rounded-full border border-black/10 bg-white px-4 pr-9 text-sm font-medium outline-none focus:border-neutral-500 focus:ring-3 focus:ring-neutral-900/8"
+							class="min-h-11 max-w-64 cursor-pointer rounded-full border border-black/10 bg-white px-4 pr-9 text-[16px] font-medium outline-none focus:border-neutral-500 focus:ring-3 focus:ring-neutral-900/8"
 						>
 							<option value="all">All subscriptions</option>
 							{#each feeds as feed (feed.id)}
@@ -251,17 +242,17 @@
 			{:else}
 				<ul class="mt-8 flex flex-col gap-4">
 					{#each visibleFeedItems as item (item.id)}
-						<li
-							class="feed-card rounded-2xl border border-black/8 bg-white p-3 shadow-card transition-[border-color,box-shadow] sm:p-4"
-						>
+						<li>
+							<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
+							<a
+								href={item.videoUrl}
+								target="_blank"
+								rel="noreferrer"
+								class="feed-card block rounded-2xl border border-black/8 bg-white p-3 shadow-card outline-none transition-[border-color,box-shadow] focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 sm:p-4"
+							>
 							<div class="flex gap-4">
-								<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
-								<a
-									href={item.videoUrl}
-									target="_blank"
-									rel="noreferrer"
-									aria-label="Watch {item.title} on YouTube"
-									class="video-thumbnail relative h-[72px] w-[128px] shrink-0 overflow-hidden rounded-xl bg-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 sm:h-[90px] sm:w-[160px]"
+								<div
+									class="video-thumbnail relative h-[72px] w-[128px] shrink-0 overflow-hidden rounded-xl bg-neutral-100 sm:h-[90px] sm:w-[160px]"
 								>
 									{#if item.thumbnailUrl}
 										<img
@@ -276,8 +267,7 @@
 											<IconPlayerPlay size={22} />
 										</span>
 									{/if}
-								</a>
-								<!-- eslint-enable svelte/no-navigation-without-resolve -->
+								</div>
 
 								<div class="flex min-w-0 flex-1 flex-col">
 									<div class="flex min-w-0 items-center gap-2 text-xs text-neutral-500">
@@ -297,35 +287,25 @@
 										</time>
 									</div>
 
-									<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
-									<a
-										href={item.videoUrl}
-										target="_blank"
-										rel="noreferrer"
-										class="video-title mt-2 line-clamp-2 rounded-sm font-medium leading-5 text-neutral-900 outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2"
-									>
+									<span class="video-title mt-2 line-clamp-2 font-medium leading-5 text-neutral-900">
 										{item.title}
-									</a>
-									<!-- eslint-enable svelte/no-navigation-without-resolve -->
+									</span>
 
 									<div class="mt-auto flex items-end justify-between gap-2 pt-2">
 										{#if item.isShort}
 											<p class="text-xs text-neutral-400">Short</p>
 										{/if}
-										<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
-										<a
-											href={item.videoUrl}
-											target="_blank"
-											rel="noreferrer"
-											aria-label="Open {item.title} on YouTube"
-											class="external-action -mr-1 -mb-1 ml-auto flex size-11 shrink-0 items-center justify-center rounded-full text-neutral-400 outline-none transition-[background-color,color,transform] active:scale-[0.94] focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2"
+										<span
+											aria-hidden="true"
+											class="external-action -mr-1 -mb-1 ml-auto flex size-11 shrink-0 items-center justify-center rounded-full text-neutral-400 transition-[background-color,color]"
 										>
 											<IconExternalLink size={17} />
-										</a>
-										<!-- eslint-enable svelte/no-navigation-without-resolve -->
+										</span>
 									</div>
 								</div>
 							</div>
+							</a>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
 						</li>
 					{/each}
 				</ul>
@@ -346,19 +326,29 @@
 		}
 
 		.subscription-title:hover,
-		.video-title:hover {
+		.feed-card:hover .video-title {
 			text-decoration: underline;
 			text-underline-offset: 3px;
 		}
 
 		.icon-action:hover,
-		.external-action:hover {
+		.feed-card:hover .external-action {
 			background: var(--color-neutral-100);
 			color: var(--color-neutral-800);
 		}
 
-		.video-thumbnail:hover img {
+		.feed-card:hover .video-thumbnail img {
 			transform: scale(1.025);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.subscription-card,
+		.feed-card,
+		.icon-action,
+		.external-action,
+		.video-thumbnail img {
+			transition: none;
 		}
 	}
 </style>

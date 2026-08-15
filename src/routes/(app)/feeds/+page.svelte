@@ -1,18 +1,49 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { resolve } from '$app/paths'
-	import { IconPlus, IconRss, IconCopy, IconCheck, IconDots } from '@tabler/icons-svelte'
-	import { getFeeds, addFeed } from '$remotes/feeds.remote'
+	import { page } from '$app/state'
+	import {
+		IconCheck,
+		IconCopy,
+		IconExternalLink,
+		IconPlayerPlay,
+		IconPlus,
+		IconRss,
+		IconSettings
+	} from '@tabler/icons-svelte'
+	import { addFeed, getFeeds, getMaterializedFeed } from '$remotes/feeds.remote'
+	import AccountControls from '$ui/auth/account-controls.svelte'
 	import { site } from '$lib/site-config'
 
-	// No boundary/pending around this — navigation waits for the data instead
-	// of flashing a loading state (the +page.ts load warms it during nav)
-	const feeds = $derived(await getFeeds())
+	const [feeds, materializedItems] = await Promise.all([getFeeds(), getMaterializedFeed()])
 
 	let url = $state('')
 	let adding = $state(false)
 	let errorMessage: string | null = $state(null)
 	let copiedFeedId: string | null = $state(null)
+	let selectedFeedId = $state('all')
+
+	const visibleFeedItems = $derived.by(() => {
+		if (selectedFeedId !== 'all') {
+			return materializedItems.filter((item) => item.feedId === selectedFeedId)
+		}
+
+		// A user can create more than one filtered feed for the same channel.
+		// Keep that useful distinction in the filter, but avoid duplicate videos
+		// in the combined view.
+		return materializedItems.filter(
+			(item, index, items) =>
+				items.findIndex((candidate) => candidate.ytVideoId === item.ytVideoId) === index
+		)
+	})
+
+	function formatPublishedAt(date: Date) {
+		return date.toLocaleDateString('en-US', {
+			month: 'short',
+			day: 'numeric',
+			year: date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric'
+		})
+	}
 
 	async function copyFeedUrl(feed: { id: string; feedUrl: string }) {
 		await navigator.clipboard.writeText(feed.feedUrl)
@@ -42,97 +73,292 @@
 </script>
 
 <svelte:head>
-	<title>Your feeds — {site.name}</title>
+	<title>Your subscriptions — {site.name}</title>
 </svelte:head>
 
-<h1 class="text-2xl font-semibold tracking-tight-md">Your feeds</h1>
-
-<form onsubmit={add} class="relative mt-6">
-	<input
-		type="text"
-		placeholder="Paste a YouTube link — channel, @handle, or any video"
-		bind:value={url}
-		class="w-full rounded-full border border-neutral-300 bg-white py-3 pr-26 pl-5 outline-none focus:border-neutral-500"
-	/>
-	<button
-		type="submit"
-		disabled={adding || !url.trim()}
-		class="absolute top-1/2 right-1.5 inline-flex -translate-y-1/2 items-center gap-1 rounded-full bg-neutral-800 py-2 pr-4 pl-3 font-medium text-white transition-all hover:bg-neutral-900 active:scale-[0.97] disabled:opacity-50"
+<div
+	class="min-h-screen bg-white lg:grid lg:h-screen lg:grid-cols-2 lg:overflow-hidden"
+>
+	<section
+		aria-labelledby="subscriptions-heading"
+		class="bg-white lg:overflow-y-auto lg:overscroll-contain"
 	>
-		<IconPlus size={18} stroke={2.5} />
-		{adding ? 'Adding…' : 'Add'}
-	</button>
-</form>
-{#if errorMessage}
-	<p class="mt-3 text-sm text-rose-600">{errorMessage}</p>
-{/if}
+		<div class="ml-auto max-w-[800px] px-5 pt-3 pb-8 sm:px-8 lg:px-10 lg:pt-4 xl:pr-12">
+			<a
+				href={resolve('/(app)/feeds')}
+				class="relative inline-flex h-8 items-center rounded-sm font-semibold tracking-tight-md outline-none after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-4"
+			>
+				{site.name}
+			</a>
 
-{#if feeds.length === 0}
-		<p class="mt-12 text-center text-neutral-500">
-			No feeds yet — paste a YouTube link above to create your first one.
-		</p>
-	{:else}
-		<ul class="mt-8 flex flex-col gap-3">
-			{#each feeds as feed (feed.id)}
-				<li
-					class="relative flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-card transition-colors hover:border-neutral-300"
+			<h1 id="subscriptions-heading" class="mt-8 text-2xl font-semibold tracking-tight-md">
+				Subscriptions
+			</h1>
+
+			<form onsubmit={add} class="relative mt-6">
+				<label for="youtube-url" class="sr-only">Add a YouTube channel or video</label>
+				<input
+					id="youtube-url"
+					type="text"
+					placeholder="Paste a channel, @handle, or video link"
+					bind:value={url}
+					aria-describedby={errorMessage ? 'add-feed-error' : undefined}
+					aria-invalid={errorMessage ? 'true' : undefined}
+					class="min-h-12 w-full rounded-full border border-black/12 bg-white py-3 pr-27 pl-5 text-[16px] outline-none transition-[border-color,box-shadow] focus:border-neutral-500 focus:ring-3 focus:ring-neutral-900/8"
+				/>
+				<button
+					type="submit"
+					disabled={adding || !url.trim()}
+					class="primary-action absolute inset-y-1 right-1 inline-flex items-center gap-1.5 rounded-full bg-neutral-800 pr-4 pl-3.5 font-medium text-white outline-none transition-[background-color,transform] active:scale-[0.97] disabled:pointer-events-none disabled:bg-neutral-300 disabled:text-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2"
 				>
-					<!-- Stretched link: the whole row navigates, buttons sit above it -->
-					<a
-						href={resolve('/(app)/feeds/[id]', { id: feed.id })}
-						class="absolute inset-0 rounded-2xl"
-						aria-label="Manage {feed.title}"
-					></a>
-					{#if feed.channelIcon}
-						<img
-							src={feed.channelIcon}
-							alt=""
-							loading="lazy"
-							referrerpolicy="no-referrer"
-							class="size-11 shrink-0 rounded-full object-cover"
-						/>
-					{:else}
-						<div
-							class="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-400"
-						>
-							<IconRss size={20} />
-						</div>
-					{/if}
-					<div class="min-w-0 flex-1">
-						<h2 class="truncate font-medium">{feed.title}</h2>
-						<p class="mt-0.5 text-sm text-neutral-500">
-							{feed.itemCount}
-							{feed.itemCount === 1 ? 'video' : 'videos'}
-							{#if feed.includeShorts}· Shorts on{/if}
-							{#if feed.ruleCount > 0}
-								· {feed.ruleCount}
-								{feed.ruleCount === 1 ? 'filter' : 'filters'}
-							{/if}
-						</p>
+					<IconPlus size={18} stroke={2.5} />
+					{adding ? 'Adding…' : 'Add'}
+				</button>
+			</form>
+
+			{#if errorMessage}
+				<p id="add-feed-error" role="alert" class="mt-3 text-sm text-rose-600">
+					{errorMessage}
+				</p>
+			{/if}
+
+			{#if feeds.length === 0}
+				<div class="mt-12 rounded-2xl border border-dashed border-black/12 px-6 py-10 text-center">
+					<div
+						class="mx-auto flex size-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-400"
+					>
+						<IconRss size={20} />
 					</div>
-					<div class="relative z-10 flex shrink-0 items-center gap-1.5">
-						<button
-							onclick={() => copyFeedUrl(feed)}
-							aria-label="Copy feed URL"
-							title="Copy feed URL"
-							class="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition-all hover:bg-neutral-200 hover:text-neutral-800 active:scale-[0.94]"
+					<h2 class="mt-4 font-medium">Build your first subscription</h2>
+					<p class="mx-auto mt-1 max-w-sm text-sm leading-6 text-neutral-500">
+						Paste any YouTube link above. Shorts are hidden by default, and you can add keyword
+						filters next.
+					</p>
+				</div>
+			{:else}
+				<ul class="mt-8 flex flex-col gap-3">
+					{#each feeds as feed (feed.id)}
+						<li
+							class="subscription-card flex items-center gap-4 rounded-2xl border border-black/8 bg-white px-4 py-3.5 shadow-card transition-[border-color,box-shadow]"
 						>
-							{#if copiedFeedId === feed.id}
-								<IconCheck size={18} class="text-green-600" />
+							{#if feed.channelIcon}
+								<img
+									src={feed.channelIcon}
+									alt=""
+									loading="lazy"
+									referrerpolicy="no-referrer"
+									class="size-11 shrink-0 rounded-full object-cover"
+								/>
 							{:else}
-								<IconCopy size={18} />
+								<div
+									class="flex size-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-400"
+								>
+									<IconRss size={20} />
+								</div>
 							{/if}
-						</button>
-						<a
-							href={resolve('/(app)/feeds/[id]', { id: feed.id })}
-							aria-label="Manage {feed.title}"
-							title="Manage feed"
-							class="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition-all hover:bg-neutral-200 hover:text-neutral-800 active:scale-[0.94]"
+							<div class="min-w-0 flex-1">
+								<a
+									href={resolve('/(app)/feeds/[id]', { id: feed.id })}
+									class="subscription-title block truncate rounded-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2"
+								>
+									{feed.title}
+								</a>
+								<p class="mt-0.5 truncate text-sm text-neutral-500">
+									{feed.itemCount} {feed.itemCount === 1 ? 'video' : 'videos'}
+									<span class="px-1" aria-hidden="true">·</span>{feed.includeShorts
+										? 'Shorts on'
+										: 'Shorts off'}
+									{#if feed.ruleCount > 0}
+										<span class="px-1" aria-hidden="true">·</span>{feed.ruleCount}
+										{feed.ruleCount === 1 ? 'filter' : 'filters'}
+									{/if}
+								</p>
+							</div>
+							<div class="flex shrink-0 items-center gap-1">
+								<button
+									onclick={() => copyFeedUrl(feed)}
+									aria-label={copiedFeedId === feed.id ? 'Feed URL copied' : 'Copy feed URL'}
+									title={copiedFeedId === feed.id ? 'Copied' : 'Copy feed URL'}
+									class="icon-action flex size-11 items-center justify-center rounded-full text-neutral-500 outline-none transition-[background-color,color,transform] active:scale-[0.94] focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2"
+								>
+									{#if copiedFeedId === feed.id}
+										<IconCheck size={18} class="text-emerald-600" />
+									{:else}
+										<IconCopy size={18} />
+									{/if}
+								</button>
+								<a
+									href={resolve('/(app)/feeds/[id]', { id: feed.id })}
+									aria-label="Manage {feed.title}"
+									title="Subscription settings"
+									class="icon-action flex size-11 items-center justify-center rounded-full text-neutral-500 outline-none transition-[background-color,color,transform] active:scale-[0.94] focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2"
+								>
+									<IconSettings size={18} />
+								</a>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
+	</section>
+
+	<section
+		aria-labelledby="feed-heading"
+		class="bg-[#FAFAFA] lg:overflow-y-auto lg:overscroll-contain"
+	>
+		<div class="mr-auto max-w-[800px] px-5 pt-3 pb-8 sm:px-8 lg:px-10 lg:pt-4 xl:pl-12">
+			<div class="flex h-8 items-center justify-end">
+				<AccountControls email={page.data.user.email} />
+			</div>
+
+			<div class="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+				<h2 id="feed-heading" class="text-2xl font-semibold tracking-tight-md">Feed</h2>
+
+				{#if feeds.length > 0}
+					<div class="shrink-0">
+						<label for="feed-filter" class="sr-only">Filter your feed by subscription</label>
+						<select
+							id="feed-filter"
+							bind:value={selectedFeedId}
+							class="min-h-11 max-w-64 cursor-pointer rounded-full border border-black/10 bg-white px-4 pr-9 text-sm font-medium outline-none focus:border-neutral-500 focus:ring-3 focus:ring-neutral-900/8"
 						>
-							<IconDots size={18} />
-						</a>
+							<option value="all">All subscriptions</option>
+							{#each feeds as feed (feed.id)}
+								<option value={feed.id}>{feed.title}</option>
+							{/each}
+						</select>
 					</div>
-				</li>
-			{/each}
-		</ul>
-{/if}
+				{/if}
+			</div>
+
+			{#if visibleFeedItems.length === 0}
+				<div class="mt-10 rounded-2xl border border-dashed border-black/12 bg-white/60 px-6 py-12 text-center">
+					<div
+						class="mx-auto flex size-11 items-center justify-center rounded-full bg-white text-neutral-400 shadow-sm"
+					>
+						<IconPlayerPlay size={20} />
+					</div>
+					<h3 class="mt-4 font-medium">
+						{feeds.length === 0 ? 'Your videos will appear here' : 'No matching videos yet'}
+					</h3>
+					<p class="mx-auto mt-1 max-w-sm text-sm leading-6 text-neutral-500">
+						{feeds.length === 0
+							? 'Add a YouTube subscription to start building a calm, filtered viewing queue.'
+							: 'New videos that pass this subscription’s settings will show up automatically.'}
+					</p>
+				</div>
+			{:else}
+				<ul class="mt-8 flex flex-col gap-4">
+					{#each visibleFeedItems as item (item.id)}
+						<li
+							class="feed-card rounded-2xl border border-black/8 bg-white p-3 shadow-card transition-[border-color,box-shadow] sm:p-4"
+						>
+							<div class="flex gap-4">
+								<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
+								<a
+									href={item.videoUrl}
+									target="_blank"
+									rel="noreferrer"
+									aria-label="Watch {item.title} on YouTube"
+									class="video-thumbnail relative h-[72px] w-[128px] shrink-0 overflow-hidden rounded-xl bg-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 sm:h-[90px] sm:w-[160px]"
+								>
+									{#if item.thumbnailUrl}
+										<img
+											src={item.thumbnailUrl}
+											alt=""
+											loading="lazy"
+											referrerpolicy="no-referrer"
+											class="size-full object-cover transition-transform"
+										/>
+									{:else}
+										<span class="flex size-full items-center justify-center text-neutral-400">
+											<IconPlayerPlay size={22} />
+										</span>
+									{/if}
+								</a>
+								<!-- eslint-enable svelte/no-navigation-without-resolve -->
+
+								<div class="flex min-w-0 flex-1 flex-col">
+									<div class="flex min-w-0 items-center gap-2 text-xs text-neutral-500">
+										{#if item.channelIcon}
+											<img
+												src={item.channelIcon}
+												alt=""
+												loading="lazy"
+												referrerpolicy="no-referrer"
+												class="size-5 shrink-0 rounded-full object-cover"
+											/>
+										{/if}
+										<span class="truncate font-medium text-neutral-700">{item.channelTitle}</span>
+										<span aria-hidden="true">·</span>
+										<time datetime={item.publishedAt.toISOString()} class="shrink-0">
+											{formatPublishedAt(item.publishedAt)}
+										</time>
+									</div>
+
+									<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
+									<a
+										href={item.videoUrl}
+										target="_blank"
+										rel="noreferrer"
+										class="video-title mt-2 line-clamp-2 rounded-sm font-medium leading-5 text-neutral-900 outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2"
+									>
+										{item.title}
+									</a>
+									<!-- eslint-enable svelte/no-navigation-without-resolve -->
+
+									<div class="mt-auto flex items-end justify-between gap-2 pt-2">
+										{#if item.isShort}
+											<p class="text-xs text-neutral-400">Short</p>
+										{/if}
+										<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
+										<a
+											href={item.videoUrl}
+											target="_blank"
+											rel="noreferrer"
+											aria-label="Open {item.title} on YouTube"
+											class="external-action -mr-1 -mb-1 ml-auto flex size-11 shrink-0 items-center justify-center rounded-full text-neutral-400 outline-none transition-[background-color,color,transform] active:scale-[0.94] focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2"
+										>
+											<IconExternalLink size={17} />
+										</a>
+										<!-- eslint-enable svelte/no-navigation-without-resolve -->
+									</div>
+								</div>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
+	</section>
+</div>
+
+<style>
+	@media (hover: hover) and (pointer: fine) {
+		.primary-action:hover {
+			background: var(--color-neutral-900);
+		}
+
+		.subscription-card:hover,
+		.feed-card:hover {
+			border-color: color-mix(in oklch, var(--color-neutral-900) 18%, transparent);
+		}
+
+		.subscription-title:hover,
+		.video-title:hover {
+			text-decoration: underline;
+			text-underline-offset: 3px;
+		}
+
+		.icon-action:hover,
+		.external-action:hover {
+			background: var(--color-neutral-100);
+			color: var(--color-neutral-800);
+		}
+
+		.video-thumbnail:hover img {
+			transform: scale(1.025);
+		}
+	}
+</style>

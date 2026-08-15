@@ -99,6 +99,36 @@ export const getFeeds = query(async () => {
 	}))
 })
 
+/**
+ * Combines every materialized feed item for the current user. Because this
+ * reads feedItems (rather than raw channel videos), per-feed Shorts and keyword
+ * settings have already been applied by the ingest pipeline.
+ */
+export const getMaterializedFeed = query(async () => {
+	const user = requireUser()
+
+	return db
+		.select({
+			id: feedItems.id,
+			feedId: feeds.id,
+			channelTitle: channels.title,
+			channelIcon: channels.iconUrl,
+			ytVideoId: videos.ytVideoId,
+			title: videos.title,
+			thumbnailUrl: videos.thumbnailUrl,
+			videoUrl: videos.videoUrl,
+			isShort: videos.isShort,
+			publishedAt: videos.publishedAt
+		})
+		.from(feedItems)
+		.innerJoin(feeds, eq(feedItems.feedId, feeds.id))
+		.innerJoin(videos, eq(feedItems.videoId, videos.id))
+		.innerJoin(channels, eq(feeds.channelId, channels.id))
+		.where(eq(feeds.userId, user.id))
+		.orderBy(desc(videos.publishedAt), desc(feedItems.addedAt))
+		.limit(120)
+})
+
 /** Full detail for the feed settings screen */
 export const getFeed = query(v.string(), async (feedId) => {
 	const user = requireUser()
@@ -184,6 +214,7 @@ export const addFeed = command(v.pipe(v.string(), v.trim(), v.minLength(1)), asy
 
 	// Single-flight: ship the updated list back with this response
 	void getFeeds().refresh()
+	void getMaterializedFeed().refresh()
 
 	return { feedId: feed.id }
 })
@@ -264,6 +295,7 @@ export const deleteFeed = command(v.string(), async (feedId) => {
 
 	// Single-flight: the list the user returns to is already refreshed
 	void getFeeds().refresh()
+	void getMaterializedFeed().refresh()
 
 	return { ok: true }
 })

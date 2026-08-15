@@ -14,7 +14,6 @@
 	import { addFeed, getFeeds, getMaterializedFeed } from '$remotes/feeds.remote'
 	import AccountControls from '$ui/auth/account-controls.svelte'
 	import { site } from '$lib/site-config'
-	import { createClass } from '@opensky/style'
 
 	const feeds = $derived(await getFeeds())
 

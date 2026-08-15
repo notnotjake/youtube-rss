@@ -107,6 +107,7 @@ export const getFeeds = query(async () => {
  */
 export const getMaterializedFeed = query(v.nullable(v.string()), async (feedId) => {
 	const user = requireUser()
+	// The helper deduplicates or scopes to one subscription before applying its limit.
 	return listMaterializedFeedItems(db, user.id, feedId)
 })
 

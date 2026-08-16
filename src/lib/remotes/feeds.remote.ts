@@ -5,6 +5,7 @@ import * as v from 'valibot'
 
 import { env } from '$env/dynamic/private'
 import { db } from '$lib/server/db'
+import { listMaterializedFeedItems } from '$lib/server/feed-items'
 import { channels, feeds, feedRules, feedItems, videos } from '$lib/server/db/schema'
 import { resolveChannelId } from '$lib/server/youtube/resolve'
 import { fetchChannelFeed } from '$lib/server/youtube/feed-parser'
@@ -99,6 +100,17 @@ export const getFeeds = query(async () => {
 	}))
 })
 
+/**
+ * Combines every materialized feed item for the current user. Because this
+ * reads feedItems (rather than raw channel videos), per-feed Shorts and keyword
+ * settings have already been applied by the ingest pipeline.
+ */
+export const getMaterializedFeed = query(v.nullable(v.string()), async (feedId) => {
+	const user = requireUser()
+	// The helper deduplicates or scopes to one subscription before applying its limit.
+	return listMaterializedFeedItems(db, user.id, feedId)
+})
+
 /** Full detail for the feed settings screen */
 export const getFeed = query(v.string(), async (feedId) => {
 	const user = requireUser()
@@ -184,6 +196,7 @@ export const addFeed = command(v.pipe(v.string(), v.trim(), v.minLength(1)), asy
 
 	// Single-flight: ship the updated list back with this response
 	void getFeeds().refresh()
+	void getMaterializedFeed(null).refresh()
 
 	return { feedId: feed.id }
 })
@@ -264,6 +277,7 @@ export const deleteFeed = command(v.string(), async (feedId) => {
 
 	// Single-flight: the list the user returns to is already refreshed
 	void getFeeds().refresh()
+	void getMaterializedFeed(null).refresh()
 
 	return { ok: true }
 })

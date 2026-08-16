@@ -4,6 +4,7 @@
 	import { IconPlus, IconRss, IconCopy, IconCheck, IconDots } from '@tabler/icons-svelte'
 	import { getFeeds, addFeed } from '$remotes/feeds.remote'
 	import { site } from '$lib/site-config'
+	import { createClass } from '@opensky/style'
 
 	// No boundary/pending around this — navigation waits for the data instead
 	// of flashing a loading state (the +page.ts load warms it during nav)
@@ -45,33 +46,65 @@
 	<title>Your feeds — {site.name}</title>
 </svelte:head>
 
-<h1 class="text-2xl font-semibold tracking-tight-md">Your feeds</h1>
-
-<form onsubmit={add} class="relative mt-6">
-	<input
-		type="text"
-		placeholder="Paste a YouTube link — channel, @handle, or any video"
-		bind:value={url}
-		class="w-full rounded-full border border-neutral-300 bg-white py-3 pr-26 pl-5 outline-none focus:border-neutral-500"
-	/>
-	<button
-		type="submit"
-		disabled={adding || !url.trim()}
-		class="absolute top-1/2 right-1.5 inline-flex -translate-y-1/2 items-center gap-1 rounded-full bg-neutral-800 py-2 pr-4 pl-3 font-medium text-white transition-all hover:bg-neutral-900 active:scale-[0.97] disabled:opacity-50"
-	>
-		<IconPlus size={18} stroke={2.5} />
-		{adding ? 'Adding…' : 'Add'}
-	</button>
-</form>
-{#if errorMessage}
-	<p class="mt-3 text-sm text-rose-600">{errorMessage}</p>
-{/if}
+<h1 class="text-2xl font-semibold tracking-tight-md">Your Feeds</h1>
 
 {#if feeds.length === 0}
-		<p class="mt-12 text-center text-neutral-500">
-			No feeds yet — paste a YouTube link above to create your first one.
-		</p>
-	{:else}
+	<div class="mt-12 flex w-full flex-col items-center py-10 text-center">
+		<p class="text-[1.2rem] font-medium tracking-tight">Add your first feed</p>
+		<p class="text-neutral-700 tracking-tight-md">Paste a YouTube link to get started</p>
+	</div>
+{/if}
+
+<form
+	onsubmit={add}
+	class="relative mt-6 flex rounded-full border border-neutral-200 bg-white transition-[border-color,box-shadow] focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 motion-reduce:transition-none"
+>
+	<label for="youtube-url" class="sr-only">Add a YouTube channel or video</label>
+	<input
+		id="youtube-url"
+		type="text"
+		inputmode="url"
+		autocomplete="off"
+		spellcheck="false"
+		placeholder="Paste a YouTube link — channel, @handle, or video"
+		bind:value={url}
+		aria-describedby={errorMessage ? 'add-feed-error' : undefined}
+		aria-invalid={errorMessage ? 'true' : undefined}
+		class="w-full touch-manipulation rounded-full py-3 pr-3 pl-5 text-[16px] outline-none"
+	/>
+	<div class="p-1">
+		<button
+			type="submit"
+			disabled={adding || !url.trim()}
+			aria-busy={adding}
+			class={createClass(
+				'flex min-h-11 w-27 shrink-0 touch-manipulation items-center justify-center gap-1.5 rounded-full px-3 font-medium text-white outline-none transition-[background-color,color,transform] duration-150 active:scale-[0.97] disabled:text-neutral-100 focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none',
+				adding
+					? 'bg-sky-400'
+					: 'bg-sky-400 hover:bg-sky-500 disabled:bg-neutral-400'
+			)}
+		>
+			{#if !adding}
+				<IconPlus
+					aria-hidden="true"
+					size={18}
+					stroke={2.5}
+					class={createClass(
+						'transition-transform duration-150 motion-reduce:transform-none motion-reduce:transition-none',
+						!url.trim() && '-rotate-90'
+					)}
+				/>
+			{/if}
+			<span>{adding ? 'Adding…' : 'Add'}</span>
+		</button>
+	</div>
+</form>
+
+{#if errorMessage}
+	<p id="add-feed-error" role="alert" class="mt-3 text-sm text-rose-600">{errorMessage}</p>
+{/if}
+
+{#if feeds.length !== 0}
 		<ul class="mt-8 flex flex-col gap-3">
 			{#each feeds as feed (feed.id)}
 				<li
@@ -80,7 +113,7 @@
 					<!-- Stretched link: the whole row navigates, buttons sit above it -->
 					<a
 						href={resolve('/(app)/feeds/[id]', { id: feed.id })}
-						class="absolute inset-0 rounded-2xl"
+						class="absolute inset-0 touch-manipulation rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
 						aria-label="Manage {feed.title}"
 					></a>
 					{#if feed.channelIcon}
@@ -113,9 +146,9 @@
 					<div class="relative z-10 flex shrink-0 items-center gap-1.5">
 						<button
 							onclick={() => copyFeedUrl(feed)}
-							aria-label="Copy feed URL"
+							aria-label={copiedFeedId === feed.id ? 'Feed URL copied' : 'Copy feed URL'}
 							title="Copy feed URL"
-							class="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition-all hover:bg-neutral-200 hover:text-neutral-800 active:scale-[0.94]"
+							class="flex size-11 touch-manipulation items-center justify-center rounded-full bg-neutral-100 text-neutral-500 outline-none transition-[background-color,color,transform] duration-150 hover:bg-neutral-200 hover:text-neutral-800 active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none"
 						>
 							{#if copiedFeedId === feed.id}
 								<IconCheck size={18} class="text-green-600" />
@@ -127,7 +160,7 @@
 							href={resolve('/(app)/feeds/[id]', { id: feed.id })}
 							aria-label="Manage {feed.title}"
 							title="Manage feed"
-							class="flex size-9 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 transition-all hover:bg-neutral-200 hover:text-neutral-800 active:scale-[0.94]"
+							class="flex size-11 touch-manipulation items-center justify-center rounded-full bg-neutral-100 text-neutral-500 outline-none transition-[background-color,color,transform] duration-150 hover:bg-neutral-200 hover:text-neutral-800 active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none"
 						>
 							<IconDots size={18} />
 						</a>

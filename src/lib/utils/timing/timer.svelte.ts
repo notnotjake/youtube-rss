@@ -35,7 +35,7 @@ export type TimerState = 'idle' | 'running' | 'paused' | 'completed'
  * @example
  * ```svelte
  * <script lang="ts">
- * import { Timer } from '$lib/utils/timer.svelte'
+ * import { Timer } from '#lib/utils/timing/timer.svelte.ts'
  *
  * const timer = new Timer({
  *   duration: 5000, // 5 seconds in milliseconds
@@ -312,7 +312,7 @@ export class Timer {
  * @example
  * ```svelte
  * <script lang="ts">
- * import { createTimer } from '$lib/utils/timer.svelte'
+ * import { createTimer } from '#lib/utils/timing/timer.svelte.ts'
  *
  * const timer = createTimer({
  *   duration: 10000, // 10 seconds in milliseconds

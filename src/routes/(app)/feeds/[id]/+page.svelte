@@ -3,12 +3,12 @@
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 	import { IconBan, IconFilter, IconX, IconRss } from '@tabler/icons-svelte'
-	import { getFeed, updateFeed, previewFeed, deleteFeed } from '$remotes/feeds.remote'
-	import Switch from '$ui/input/switch.svelte'
-	import Button from '$ui/input/button.svelte'
-	import CopyField from '$ui/feeds/copy-field.svelte'
-	import DeleteFeedDialog from '$ui/feeds/delete-feed-dialog.svelte'
-	import { site } from '$lib/site-config'
+	import { getFeed, updateFeed, previewFeed, deleteFeed } from '#remotes/feeds.remote.ts'
+	import Switch from '#ui/input/switch.svelte'
+	import Button from '#ui/input/button.svelte'
+	import CopyField from '#ui/feeds/copy-field.svelte'
+	import DeleteFeedDialog from '#ui/feeds/delete-feed-dialog.svelte'
+	import { site } from '#lib/site-config.ts'
 
 	type Rule = { type: 'exclude' | 'require'; match: 'title' | 'description' | 'both'; value: string }
 
@@ -76,7 +76,6 @@
 			{/if}
 			<div>
 				<h1 class="text-2xl font-semibold tracking-tight-md">{feed.title}</h1>
-				<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
 				<a
 					href={feed.channel.url}
 					target="_blank"
@@ -85,7 +84,6 @@
 				>
 					{feed.channel.title} on YouTube ↗
 				</a>
-				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			</div>
 		</div>
 	</div>
@@ -220,7 +218,6 @@
 							/>
 						{/if}
 						<div class="min-w-0 flex-1">
-							<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
 							<a
 								href={item.videoUrl}
 								target="_blank"
@@ -229,7 +226,6 @@
 							>
 								{item.title}
 							</a>
-							<!-- eslint-enable svelte/no-navigation-without-resolve -->
 							<p class="mt-0.5 text-sm text-neutral-500">
 								{item.publishedAt.toLocaleDateString('en-US', {
 									month: 'short',

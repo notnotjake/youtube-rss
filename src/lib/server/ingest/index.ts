@@ -6,7 +6,7 @@ import { fetchChannelFeed, type FeedEntry } from '../youtube/feed-parser'
 import { fetchChannelIcon } from '../youtube/channel-icon'
 import { isShort } from '../youtube/shorts'
 import { evaluateVideo, type FeedRule } from './rules'
-import { err, ok, type StructuredResult } from '$utils/structured-result'
+import { err, ok, type StructuredResult } from '#utils/structured-result.ts'
 
 export type IngestCounts = {
 	newVideos: number

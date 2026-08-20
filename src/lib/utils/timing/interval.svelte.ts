@@ -30,7 +30,7 @@ export type IntervalState = 'idle' | 'running' | 'paused'
  * @example
  * ```svelte
  * <script lang="ts">
- * import { Interval } from '$lib/utils/interval.svelte'
+ * import { Interval } from '#lib/utils/timing/interval.svelte.ts'
  *
  * let count = $state(0)
  *
@@ -325,7 +325,7 @@ export class Interval {
  * @example
  * ```svelte
  * <script lang="ts">
- * import { createInterval } from '$lib/utils/interval.svelte'
+ * import { createInterval } from '#lib/utils/timing/interval.svelte.ts'
  *
  * let value = $state(0)
  *
@@ -361,7 +361,7 @@ export function createInterval(options: IntervalOptions): Interval {
  * @example
  * ```svelte
  * <script lang="ts">
- * import { runIntervalTimes } from '$lib/utils/interval.svelte'
+ * import { runIntervalTimes } from '#lib/utils/timing/interval.svelte.ts'
  *
  * async function animateSteps() {
  *   const [interval, complete] = runIntervalTimes(100, 10, (tick) => {

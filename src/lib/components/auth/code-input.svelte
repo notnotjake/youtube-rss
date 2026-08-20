@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte'
-	import { sendLoginCode, verifyLoginCode } from '$remotes/auth.remote'
+	import { sendLoginCode, verifyLoginCode } from '#remotes/auth.remote.ts'
 	import { enhancedForm } from '@opensky/remotes'
 
-	import { delay } from '$utils/timing'
+	import { delay } from '#utils/timing/index.ts'
 	import { createClass } from '@opensky/style'
-	import { createShake } from '$ui/adapt/shake-behavior'
+	import { createShake } from '#ui/adapt/shake-behavior.ts'
 	import { scale } from 'svelte/transition'
 	import { IconCircleCheck, IconCircleCheckFilled } from '@tabler/icons-svelte'
 	import { PinInput, REGEXP_ONLY_DIGITS, type PinInputRootSnippetProps } from 'bits-ui'
 
-	import { Suspense } from '$ui/feedback'
+	import { Suspense } from '#ui/feedback/index.ts'
 	import ResendEmailButton from './resend-email-button.svelte'
 
 	type Props = {

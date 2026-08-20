@@ -3,15 +3,15 @@ import { error } from '@sveltejs/kit'
 import { and, count, desc, eq, inArray } from 'drizzle-orm'
 import * as v from 'valibot'
 
-import { env } from '$env/dynamic/private'
-import { db } from '$lib/server/db'
-import { listMaterializedFeedItems } from '$lib/server/feed-items'
-import { channels, feeds, feedRules, feedItems, videos } from '$lib/server/db/schema'
-import { resolveChannelId } from '$lib/server/youtube/resolve'
-import { fetchChannelFeed } from '$lib/server/youtube/feed-parser'
-import { ingestChannel, seedFeedItems, refreshChannelIcon } from '$lib/server/ingest'
-import { evaluateVideo } from '$lib/server/ingest/rules'
-import { subscribeChannel, unsubscribeChannel } from '$lib/server/websub'
+import { SITE_URL } from '$app/env/private'
+import { db } from '#lib/server/db/index.ts'
+import { listMaterializedFeedItems } from '#lib/server/feed-items.ts'
+import { channels, feeds, feedRules, feedItems, videos } from '#lib/server/db/schema/index.ts'
+import { resolveChannelId } from '#lib/server/youtube/resolve.ts'
+import { fetchChannelFeed } from '#lib/server/youtube/feed-parser.ts'
+import { ingestChannel, seedFeedItems, refreshChannelIcon } from '#lib/server/ingest/index.ts'
+import { evaluateVideo } from '#lib/server/ingest/rules.ts'
+import { subscribeChannel, unsubscribeChannel } from '#lib/server/websub/index.ts'
 
 function needsWebsubSubscription(
 	channel: Pick<typeof channels.$inferSelect, 'websubStatus' | 'websubLeaseExpiresAt'>
@@ -26,7 +26,7 @@ function requireUser() {
 }
 
 function publicFeedUrl(token: string): string {
-	return `${env.SITE_URL}/rss/${token}.xml`
+	return `${SITE_URL}/rss/${token}.xml`
 }
 
 const ruleSchema = v.object({

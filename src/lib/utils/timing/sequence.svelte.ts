@@ -47,7 +47,7 @@ export type SequenceState = 'idle' | 'running' | 'completed' | 'cancelled'
  * @example
  * ```svelte
  * <script lang="ts">
- * import { Sequence } from '$lib/utils/sequence.svelte'
+ * import { Sequence } from '#lib/utils/timing/sequence.svelte.ts'
  *
  * const sequence = new Sequence({
  *   onStart: () => console.log('Starting'),
@@ -407,7 +407,7 @@ export class Sequence {
  * @example
  * ```svelte
  * <script lang="ts">
- * import { createSequence } from '$lib/utils/sequence.svelte'
+ * import { createSequence } from '#lib/utils/timing/sequence.svelte.ts'
  *
  * const sequence = createSequence({
  *   onStart: () => console.log('Started'),
@@ -445,7 +445,7 @@ export function createSequence(options?: SequenceOptions): Sequence {
  * @example
  * ```svelte
  * <script lang="ts">
- * import { runSequence } from '$lib/utils/sequence.svelte'
+ * import { runSequence } from '#lib/utils/timing/sequence.svelte.ts'
  * import { onDestroy } from 'svelte'
  *
  * const [sequence, cleanup] = runSequence([

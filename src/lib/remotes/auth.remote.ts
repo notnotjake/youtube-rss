@@ -1,7 +1,7 @@
 import { form, getRequestEvent } from '$app/server'
 import { error, redirect } from '@sveltejs/kit'
 import * as v from 'valibot'
-import { auth } from '$lib/server/auth'
+import { auth } from '#lib/server/auth/index.ts'
 
 const identifierField = v.pipe(v.string(), v.trim(), v.email('Invalid email'))
 

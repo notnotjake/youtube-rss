@@ -2,8 +2,8 @@
 	import type { Snippet } from 'svelte'
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
-	import AccountControls from '$ui/auth/account-controls.svelte'
-	import { site } from '$lib/site-config'
+	import AccountControls from '#ui/auth/account-controls.svelte'
+	import { site } from '#lib/site-config.ts'
 
 	let { children }: { children: Snippet } = $props()
 </script>

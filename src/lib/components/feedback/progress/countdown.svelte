@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy, untrack } from 'svelte'
 	import { createClass } from '@opensky/style'
-	import { Timer, SECOND_IN_MS } from '$lib/utils/timing'
+	import { Timer, SECOND_IN_MS } from '#lib/utils/timing/index.ts'
 	import Radial from './radial.svelte'
 
 	type Props = {

@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm'
 import type { FetchLike } from '../fetch'
-import { env } from '$env/dynamic/private'
+import { SITE_URL } from '$app/env/private'
 import type { Db } from '../db/client'
 import { channels } from '../db/schema'
 import { feedUrl } from '../youtube/feed-parser'
-import { err, ok, type StructuredResult } from '$utils/structured-result'
+import { err, ok, type StructuredResult } from '#utils/structured-result.ts'
 
 export { verifyHubSignature } from './signature'
 
@@ -15,11 +15,11 @@ const LEASE_SECONDS = 828000
 type Channel = typeof channels.$inferSelect
 
 export function callbackUrl(channel: Pick<Channel, 'id' | 'websubCallbackToken'>): string {
-	return `${env.SITE_URL}/api/websub/${channel.id}?t=${channel.websubCallbackToken}`
+	return `${SITE_URL}/api/websub/${channel.id}?t=${channel.websubCallbackToken}`
 }
 
 function isLocalOrigin(): boolean {
-	return !env.SITE_URL || /localhost|127\.0\.0\.1/.test(env.SITE_URL)
+	return !SITE_URL || /localhost|127\.0\.0\.1/.test(SITE_URL)
 }
 
 async function sendHubRequest(

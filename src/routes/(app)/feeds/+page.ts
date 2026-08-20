@@ -1,4 +1,4 @@
-import { getFeeds, getMaterializedFeed } from '$remotes/feeds.remote'
+import { getFeeds, getMaterializedFeed } from '#remotes/feeds.remote.ts'
 import type { PageLoad } from './$types'
 
 // Warming the query here means the data ships with the server render and

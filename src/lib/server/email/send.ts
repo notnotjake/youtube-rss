@@ -1,8 +1,8 @@
 import type { CreateEmailOptions } from 'resend'
 import { Resend } from 'resend'
 
-import { err, ok, type StructuredResult } from '$utils/structured-result'
-import { NODE_ENV, RESEND_AUTH, RESEND_FROM } from '$env/static/private'
+import { NODE_ENV, RESEND_AUTH, RESEND_FROM } from '$app/env/private'
+import { err, ok, type StructuredResult } from '#utils/structured-result.ts'
 
 const IS_DEV = NODE_ENV === 'development'
 const SEND_IN_DEV = false // Set true to override and send emails in dev

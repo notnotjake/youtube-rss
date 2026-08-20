@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths'
-	import { site } from '$lib/site-config'
+	import { site } from '#lib/site-config.ts'
 	let { children } = $props()
 </script>
 

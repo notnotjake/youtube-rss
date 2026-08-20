@@ -3,15 +3,15 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { emailOTP } from 'better-auth/plugins'
 import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { getRequestEvent } from '$app/server'
-import { env } from '$env/dynamic/private'
+import { BETTER_AUTH_SECRET, SITE_URL } from '$app/env/private'
 
 import { db } from '../db'
 import * as schema from '../db/schema'
 import { sendLoginCode, OTP_MAX_AGE_MINS } from '../email'
 
 export const auth = betterAuth({
-	baseURL: env.SITE_URL,
-	secret: env.BETTER_AUTH_SECRET,
+	baseURL: SITE_URL,
+	secret: BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, { provider: 'pg', schema }),
 	plugins: [
 		emailOTP({

@@ -14,12 +14,6 @@ export const svelteConfig = {
 	adapter: adapter(),
 	experimental: {
 		remoteFunctions: true
-	},
-	alias: {
-		$remotes: 'src/lib/remotes',
-		$ui: 'src/lib/components/',
-		$utils: 'src/lib/utils/',
-		$theme: 'src/lib/theme/'
 	}
 }
 

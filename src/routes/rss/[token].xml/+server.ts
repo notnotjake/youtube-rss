@@ -2,10 +2,10 @@ import { error } from '@sveltejs/kit'
 import { desc, eq } from 'drizzle-orm'
 import type { RequestHandler } from './$types'
 
-import { env } from '$env/dynamic/private'
-import { db } from '$lib/server/db'
-import { channels, feeds, feedItems, videos } from '$lib/server/db/schema'
-import { renderRssFeed } from '$lib/server/rss/render'
+import { SITE_URL } from '$app/env/private'
+import { db } from '#lib/server/db/index.ts'
+import { channels, feeds, feedItems, videos } from '#lib/server/db/schema/index.ts'
+import { renderRssFeed } from '#lib/server/rss/render.ts'
 
 export const GET: RequestHandler = async ({ params }) => {
 	const [row] = await db
@@ -27,7 +27,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		{
 			title: row.feed.title ?? row.channel.title,
 			channelUrl: row.channel.channelUrl,
-			feedUrl: `${env.SITE_URL}/rss/${row.feed.token}.xml`,
+			feedUrl: `${SITE_URL}/rss/${row.feed.token}.xml`,
 			iconUrl: row.channel.iconUrl
 		},
 		items.map(({ video }) => ({

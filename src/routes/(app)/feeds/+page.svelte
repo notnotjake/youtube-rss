@@ -11,9 +11,9 @@
 		IconRss,
 		IconSettings
 	} from '@tabler/icons-svelte'
-	import { addFeed, getFeeds, getMaterializedFeed } from '$remotes/feeds.remote'
-	import AccountControls from '$ui/auth/account-controls.svelte'
-	import { site } from '$lib/site-config'
+	import { addFeed, getFeeds, getMaterializedFeed } from '#remotes/feeds.remote.ts'
+	import AccountControls from '#ui/auth/account-controls.svelte'
+	import { site } from '#lib/site-config.ts'
 
 	const feeds = $derived(await getFeeds())
 
@@ -243,7 +243,6 @@
 				<ul class="mt-8 flex flex-col gap-4">
 					{#each visibleFeedItems as item (item.id)}
 						<li>
-							<!-- eslint-disable svelte/no-navigation-without-resolve -- external YouTube link -->
 							<a
 								href={item.videoUrl}
 								target="_blank"
@@ -305,7 +304,6 @@
 								</div>
 							</div>
 							</a>
-							<!-- eslint-enable svelte/no-navigation-without-resolve -->
 						</li>
 					{/each}
 				</ul>

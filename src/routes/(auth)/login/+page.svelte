@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
 	import * as v from 'valibot'
-	import { startLogin } from '$remotes/auth.remote'
+	import { startLogin } from '#remotes/auth.remote.ts'
 	import { enhancedForm } from '@opensky/remotes'
 
 	import { createClass } from '@opensky/style'
-	import { createShake } from '$ui/adapt/shake-behavior'
-	import { wipeVertical } from '$ui/transition'
+	import { createShake } from '#ui/adapt/shake-behavior.ts'
+	import { wipeVertical } from '#ui/transition/index.js'
 	import { fade, fly } from 'svelte/transition'
 	import { IconChevronLeft, IconArrowRight } from '@tabler/icons-svelte'
 
-	import { Suspense } from '$ui/feedback'
-	import CodeInput from '$ui/auth/code-input.svelte'
-	import { site } from '$lib/site-config'
+	import { Suspense } from '#ui/feedback/index.ts'
+	import CodeInput from '#ui/auth/code-input.svelte'
+	import { site } from '#lib/site-config.ts'
 
 	let { data } = $props()
 

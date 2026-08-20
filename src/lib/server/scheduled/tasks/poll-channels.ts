@@ -1,9 +1,9 @@
 import { Cron } from 'croner'
 import { isNull, lt, or } from 'drizzle-orm'
 
-import { db } from '$lib/server/db'
-import { channels } from '$lib/server/db/schema'
-import { ingestChannel, refreshChannelIcon } from '$lib/server/ingest'
+import { db } from '#lib/server/db/index.ts'
+import { channels } from '#lib/server/db/schema/index.ts'
+import { ingestChannel, refreshChannelIcon } from '#lib/server/ingest/index.ts'
 import { EVERY_15_MINUTES, POLL_STALE_AFTER_MS } from '../schedules'
 
 async function backfillMissingIcons() {

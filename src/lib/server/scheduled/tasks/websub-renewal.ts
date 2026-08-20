@@ -1,9 +1,9 @@
 import { Cron } from 'croner'
 import { and, isNull, lt, ne, or } from 'drizzle-orm'
 
-import { db } from '$lib/server/db'
-import { channels } from '$lib/server/db/schema'
-import { subscribeChannel } from '$lib/server/websub'
+import { db } from '#lib/server/db/index.ts'
+import { channels } from '#lib/server/db/schema/index.ts'
+import { subscribeChannel } from '#lib/server/websub/index.ts'
 import { EVERY_6_HOURS, LEASE_RENEWAL_WINDOW_MS } from '../schedules'
 
 async function renewLeases({ includeActive = false } = {}) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ProgressCountdown } from '$ui/feedback'
+	import { ProgressCountdown } from '#ui/feedback/index.ts'
 	import { createClass } from '@opensky/style'
 
 	let {

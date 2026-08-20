@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm'
 import type { RequestHandler } from './$types'
 
-import { db } from '$lib/server/db'
-import { channels } from '$lib/server/db/schema'
-import { verifyHubSignature } from '$lib/server/websub'
-import { feedUrl } from '$lib/server/youtube/feed-parser'
-import { ingestChannel } from '$lib/server/ingest'
+import { db } from '#lib/server/db/index.ts'
+import { channels } from '#lib/server/db/schema/index.ts'
+import { verifyHubSignature } from '#lib/server/websub/index.ts'
+import { feedUrl } from '#lib/server/youtube/feed-parser.ts'
+import { ingestChannel } from '#lib/server/ingest/index.ts'
 
 async function findChannel(channelId: string, callbackToken: string | null) {
 	if (!callbackToken) return null

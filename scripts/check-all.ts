@@ -62,7 +62,17 @@ async function main() {
 	results.push(await runCheck('ESLint', ['bunx', 'eslint', '.', '--cache']))
 	results.push(await runCheck('Svelte', ['bunx', 'svelte-kit', 'sync']))
 	results.push(
-		await runCheck('TypeScript', ['bunx', 'svelte-check', '--tsconfig', './tsconfig.json'])
+		await runCheck('Svelte Check', ['bunx', 'svelte-check', '--tsconfig', './tsconfig.json'])
+	)
+	results.push(
+		await runCheck('TypeScript 7', [
+			'bunx',
+			'--bun',
+			'tsc',
+			'--noEmit',
+			'--project',
+			'./tsconfig.json'
+		])
 	)
 	results.push(await runCheck('Tests', ['bun', 'test']))
 	results.push(await runCheck('Build', ['bunx', '--bun', 'vite', 'build']))

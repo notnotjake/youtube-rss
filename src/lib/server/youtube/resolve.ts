@@ -1,5 +1,5 @@
 import type { FetchLike } from '../fetch'
-import { err, ok, type StructuredResult } from '$utils/structured-result'
+import { err, ok, type StructuredResult } from '#utils/structured-result.ts'
 
 const CHANNEL_ID_PATTERN = /^UC[A-Za-z0-9_-]{22}$/
 const BROWSER_UA =

@@ -1,7 +1,7 @@
 import { and, desc, eq, sql } from 'drizzle-orm'
 
-import type { Db } from '$lib/server/db'
-import { channels, feedItems, feeds, videos } from '$lib/server/db/schema'
+import type { Db } from '#lib/server/db/index.ts'
+import { channels, feedItems, feeds, videos } from '#lib/server/db/schema/index.ts'
 
 const materializedFeedSelection = {
 	id: feedItems.id,

@@ -34,9 +34,7 @@
 </script>
 
 {#if href}
-	<!-- eslint-disable svelte/no-navigation-without-resolve -- callers pass already-resolved paths -->
 	<a {href} class={classes}>{@render children()}</a>
-	<!-- eslint-enable svelte/no-navigation-without-resolve -->
 {:else}
 	<button {type} {disabled} {onclick} class={classes}>{@render children()}</button>
 {/if}

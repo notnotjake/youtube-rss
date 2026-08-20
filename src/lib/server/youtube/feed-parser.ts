@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser'
 import type { FetchLike } from '../fetch'
-import { err, ok, type StructuredResult } from '$utils/structured-result'
+import { err, ok, type StructuredResult } from '#utils/structured-result.ts'
 
 export type FeedEntry = {
 	ytVideoId: string

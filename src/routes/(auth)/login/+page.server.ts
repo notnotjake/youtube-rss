@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
-import { site } from '$lib/site-config'
+import { site } from '#lib/site-config.ts'
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {

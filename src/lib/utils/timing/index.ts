@@ -25,7 +25,7 @@ import * as sequenceUtils from './sequence.svelte.js'
  *
  * @example
  * ```ts
- * import { Timing } from '$lib/utils/timing'
+ * import { Timing } from '#lib/utils/timing/index.ts'
  *
  * // Use units
  * const duration = 5 * Timing.SECOND_IN_MS

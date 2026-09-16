@@ -1,0 +1,23 @@
+scripts/check-docker.ts
+  s_edf509ba1b6b39::t_159c88893330c0 3,9,20,24
+scripts/compose.ts
+  s_edf509ba1b6b39::t_dcb6ff7828cbb5 1-42
+scripts/copy-docker-url.ts
+  s_edf509ba1b6b39::t_968d9513e5c0cb 6-7,9,22,30,38,73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9171a0083d754e88f579bc67142b073322d16cab",
+  "prompts": {},
+  "sessions": {
+    "s_edf509ba1b6b39": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0aaee-7f63-7342-bb06-7f204ab8d21a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Jake Go <jake@notnotjake.com>"
+    }
+  }
+}

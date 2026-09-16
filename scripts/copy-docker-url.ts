@@ -3,8 +3,10 @@
  * Copies the current Docker service connection URL to the macOS clipboard
  */
 
+import { getServicePort } from './compose'
+
 type Service = {
-	containerNamePart: string
+	composeService: string
 	containerPort: number
 	label: string
 	orbService: string
@@ -17,7 +19,7 @@ const serviceArg = process.argv[2]?.toLowerCase()
 
 const services: Record<string, Service> = {
 	db: {
-		containerNamePart: '-db-',
+		composeService: 'db',
 		containerPort: 5432,
 		label: 'Postgres',
 		orbService: 'db',
@@ -25,7 +27,7 @@ const services: Record<string, Service> = {
 		url: (port) => `postgres://root:password@localhost:${port}/local`
 	},
 	pg: {
-		containerNamePart: '-db-',
+		composeService: 'db',
 		containerPort: 5432,
 		label: 'Postgres',
 		orbService: 'db',
@@ -33,7 +35,7 @@ const services: Record<string, Service> = {
 		url: (port) => `postgres://root:password@localhost:${port}/local`
 	},
 	postgres: {
-		containerNamePart: '-db-',
+		composeService: 'db',
 		containerPort: 5432,
 		label: 'Postgres',
 		orbService: 'db',
@@ -46,32 +48,6 @@ function printUsage() {
 	console.error('\x1b[31m✗ Choose a service to copy\x1b[0m')
 	console.error('\nUsage:')
 	console.error('  bun run url:pg')
-}
-
-async function getRunningContainers() {
-	const proc = Bun.spawn(['docker', 'ps', '--format', '{{.Names}}'])
-	const text = await new Response(proc.stdout).text()
-	const exitCode = await proc.exited
-	if (exitCode !== 0) {
-		console.error('\x1b[31m✗ Docker is not available (is it installed and running?)\x1b[0m')
-		process.exit(1)
-	}
-	return text.trim().split('\n').filter(Boolean)
-}
-
-async function getContainerPort(containerName: string, containerPort: number) {
-	const proc = Bun.spawn(['docker', 'port', containerName, containerPort.toString()])
-	const text = await new Response(proc.stdout).text()
-	const exitCode = await proc.exited
-	if (exitCode !== 0) {
-		throw new Error(`Failed to get port for ${containerName}:${containerPort}`)
-	}
-	// Output format: "0.0.0.0:12345" or "[::]:12345"
-	const match = text.trim().match(/:(\d+)$/)
-	if (!match) {
-		throw new Error(`Could not parse port from: ${text}`)
-	}
-	return parseInt(match[1], 10)
 }
 
 async function copyToClipboard(value: string) {
@@ -94,24 +70,7 @@ async function main() {
 		process.exit(1)
 	}
 
-	const running = await getRunningContainers()
-	const projectContainers = running.filter((name) => name.startsWith(`${projectName}-`))
-
-	if (projectContainers.length === 0) {
-		console.error(`\x1b[31m✗ No Docker containers running for ${projectName}\x1b[0m`)
-		console.error(`\nRun: \x1b[33mbun run docker:start\x1b[0m`)
-		process.exit(1)
-	}
-
-	const container = projectContainers.find((name) => name.includes(service.containerNamePart))
-
-	if (!container) {
-		console.error(`\x1b[31m✗ Could not find ${service.label} container\x1b[0m`)
-		console.error('Found containers:', projectContainers)
-		process.exit(1)
-	}
-
-	const port = await getContainerPort(container, service.containerPort)
+	const port = await getServicePort(service.composeService, service.containerPort)
 	const url = service.url(port)
 	const orbHost = `${service.orbService}.${projectName}.orb.local`
 	const orbUrl = service.orbUrl(orbHost)
